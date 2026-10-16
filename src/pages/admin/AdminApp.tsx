@@ -21,6 +21,7 @@ import { UserInspectorPage } from './UserInspectorPage'
 import { ContextInspectorPage } from './ContextInspectorPage'
 import { CertificationPricingPage } from './CertificationPricingPage'
 import { ActivityValidationPage } from './ActivityValidationPage'
+import { EventsPage } from './EventsPage'
 import { useAuth } from '../../hooks/useAuth'
 
 const resourcePaths: Record<string, ResourceKey> = { reports: 'reports', communities: 'communities', posts: 'posts', events: 'events', administrators: 'administrators', 'system/activity': 'activity', 'moderation/actions': 'moderation-actions', 'moderation/hidden': 'hidden-content' }
@@ -37,7 +38,8 @@ function AdminPage() { const location = useLocation(); const navigate = useNavig
   <Route path="administrators" element={<PermissionGate permission="administrators.view"><AdministratorsPage /></PermissionGate>} />
   <Route path="users" element={<PermissionGate permission="users.view"><UsersPage onNavigate={navigate} /></PermissionGate>} />
   <Route path="communities" element={<PermissionGate permission="communities.view"><CommunitiesPage onNavigate={navigate} /></PermissionGate>} />
-  {Object.entries(resourcePaths).filter(([path]) => path !== "communities").map(([path, resource]) => <Route key={path} path={path} element={<PermissionGate permission={routePermissions[path]}><ResourcePage resource={resource} onNavigate={navigate} /></PermissionGate>} />)}
+  <Route path="events" element={<PermissionGate permission="events.view"><EventsPage onNavigate={navigate} /></PermissionGate>} />
+  {Object.entries(resourcePaths).filter(([path]) => path !== "communities" && path !== "events").map(([path, resource]) => <Route key={path} path={path} element={<PermissionGate permission={routePermissions[path]}><ResourcePage resource={resource} onNavigate={navigate} /></PermissionGate>} />)}
   <Route path="users/:id" element={<PermissionGate permission="users.view"><UserInspectorRoute /></PermissionGate>} />
   <Route path="communities/:id" element={<PermissionGate permission="communities.view"><CommunityDetailPage onNavigate={navigate} /></PermissionGate>} />
   <Route path="posts/:id" element={<PermissionGate permission="posts.view"><ContextInspectorRoute resource="posts" /></PermissionGate>} />
