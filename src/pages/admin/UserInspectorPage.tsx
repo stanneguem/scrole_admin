@@ -11,7 +11,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { UserCertificationOfferCard } from './UserCertificationOfferCard'
 
 type UserInspectorPageProps = { userId: string; onNavigate: (path: string) => void }
-type InspectorTab = 'profile' | 'account' | 'activity' | 'communities' | 'security' | 'moderation'
+type InspectorTab = 'profile' | 'account' | 'activity' | 'events' | 'communities' | 'security' | 'moderation'
 type ModerationAction = 'suspend' | 'reactivate' | 'ban' | 'unban' | 'delete'
 type ModerationPermission = 'users.suspend' | 'users.unsuspend' | 'users.ban' | 'users.unban' | 'users.edit'
 
@@ -43,6 +43,7 @@ type UserDetails = {
   topReactedPosts?: Record<string, any>[]
   interactedPosts?: Record<string, any>[]
   userComments?: Record<string, any>[]
+  eventHistory?: Record<string, any>[]
 }
 
 const formatDate = (value: unknown) => { if (!value) return '—'; const date = new Date(String(value)); if (Number.isNaN(date.getTime())) return String(value); return new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }).format(date) }
@@ -90,8 +91,8 @@ export function UserInspectorPage({ userId, onNavigate }: UserInspectorPageProps
   if (loading) return <Card><div className="table-empty"><strong>Chargement du profil…</strong><p>Récupération des informations Supabase.</p></div></Card>
   if (!details && !fallbackUser) return <Card><div className="table-empty"><strong>Utilisateur introuvable</strong><p>{error || 'Ce profil n’existe pas.'}</p><ScroleButton onClick={() => onNavigate('/admin/users')}>Retour aux utilisateurs</ScroleButton></div></Card>
   if (!details && fallbackUser) return <LegacyUserInspector user={fallbackUser} onNavigate={onNavigate} />
-  const profile = details!.profile; const displayName = [profile.first_name, profile.last_name].filter(Boolean).join(' ') || profile.username || userId; const status = String(profile.account_status ?? 'unknown'); const tabs: [InspectorTab, string][] = [['profile', 'Profil'], ['account', 'Compte & Auth'], ['activity', `Activité (${details!.activity.length})`], ['communities', `Communautés (${details!.communities.length})`], ['security', 'Sécurité & appareils'], ['moderation', `Modération (${details!.reportsAgainst.length})`]]
-  return <><header className="admin-page-header inspector-page-heading"><div><button type="button" className="back-action" onClick={() => onNavigate('/admin/users')}>← Retour aux utilisateurs</button><h1>Profil utilisateur</h1><p>Fiche complète de {displayName}</p></div></header><section className="profile-hero"><div className="profile-cover" style={profile.cover_url ? { backgroundImage: `url(${profile.cover_url})` } : undefined} /><div className="profile-identity">{profile.photo_url ? <img className="profile-avatar" src={profile.photo_url} alt={`Portrait de ${displayName}`} /> : <div className="profile-avatar profile-avatar-empty" aria-hidden="true">{displayName.slice(0, 1).toUpperCase()}</div>}<div className="profile-copy"><div className="profile-name-line"><h2>{displayName}</h2><StatusBadge tone={status === 'active' ? 'success' : status === 'deleted' || status === 'banned' ? 'danger' : 'warning'}>{humanStatus(status)}</StatusBadge>{profile.is_verified && <StatusBadge tone="info">Vérifié</StatusBadge>}{details!.certifications.filter((item)=>item.status==='active'&&(!item.issued_at||new Date(item.issued_at).getTime()<=Date.now())&&(!item.expires_at||new Date(item.expires_at).getTime()>Date.now())).sort((a,b)=>new Date(b.expires_at??0).getTime()-new Date(a.expires_at??0).getTime()).slice(0,1).map(item=><CertificationCodeBadge key={item.id} code={item.certification_code} />)}</div><p>@{profile.username || '—'}</p><p className="profile-bio">{profile.bio || profile.slogan || 'Aucune biographie renseignée.'}</p><span className="profile-meta">Membre depuis le {formatDate(profile.created_at)} · Dernière mise à jour {formatDate(profile.updated_at)}</span></div></div></section>{user?.role === 'Super Admin' && <UserCertificationOfferCard userId={userId} onDone={load} />}<UserModerationActions userId={userId} status={status} onDone={load}/><nav className="inspector-tabs" aria-label="Sections du profil">{tabs.map(([key, label]) => <button type="button" className={tab === key ? 'inspector-tab inspector-tab-active' : 'inspector-tab'} onClick={() => setTab(key)} key={key}>{label}</button>)}</nav>{tab === 'profile' && <ProfileTab details={details!}/>} {tab === 'account' && <AccountTab details={details!}/>} {tab === 'activity' && <ActivityTab details={details!}/>} {tab === 'communities' && <CommunitiesTab details={details!} onNavigate={onNavigate}/>} {tab === 'security' && <SecurityTab details={details!}/>} {tab === 'moderation' && <ModerationTab details={details!}/>}</>
+  const profile = details!.profile; const displayName = [profile.first_name, profile.last_name].filter(Boolean).join(' ') || profile.username || userId; const status = String(profile.account_status ?? 'unknown'); const tabs: [InspectorTab, string][] = [['profile', 'Profil'], ['account', 'Compte & Auth'], ['activity', `Activité (${details!.activity.length})`], ['events', `Événements (${(details!.eventHistory ?? []).length})`], ['communities', `Communautés (${details!.communities.length})`], ['security', 'Sécurité & appareils'], ['moderation', `Modération (${details!.reportsAgainst.length})`]]
+  return <><header className="admin-page-header inspector-page-heading"><div><button type="button" className="back-action" onClick={() => onNavigate('/admin/users')}>← Retour aux utilisateurs</button><h1>Profil utilisateur</h1><p>Fiche complète de {displayName}</p></div></header><section className="profile-hero"><div className="profile-cover" style={profile.cover_url ? { backgroundImage: `url(${profile.cover_url})` } : undefined} /><div className="profile-identity">{profile.photo_url ? <img className="profile-avatar" src={profile.photo_url} alt={`Portrait de ${displayName}`} /> : <div className="profile-avatar profile-avatar-empty" aria-hidden="true">{displayName.slice(0, 1).toUpperCase()}</div>}<div className="profile-copy"><div className="profile-name-line"><h2>{displayName}</h2><StatusBadge tone={status === 'active' ? 'success' : status === 'deleted' || status === 'banned' ? 'danger' : 'warning'}>{humanStatus(status)}</StatusBadge>{profile.is_verified && <StatusBadge tone="info">Vérifié</StatusBadge>}{details!.certifications.filter((item)=>item.status==='active'&&(!item.issued_at||new Date(item.issued_at).getTime()<=Date.now())&&(!item.expires_at||new Date(item.expires_at).getTime()>Date.now())).sort((a,b)=>new Date(b.expires_at??0).getTime()-new Date(a.expires_at??0).getTime()).slice(0,1).map(item=><CertificationCodeBadge key={item.id} code={item.certification_code} />)}</div><p>@{profile.username || '—'}</p><p className="profile-bio">{profile.bio || profile.slogan || 'Aucune biographie renseignée.'}</p><span className="profile-meta">Membre depuis le {formatDate(profile.created_at)} · Dernière mise à jour {formatDate(profile.updated_at)}</span></div></div></section>{user?.role === 'Super Admin' && <UserCertificationOfferCard userId={userId} onDone={load} />}<UserModerationActions userId={userId} status={status} onDone={load}/><nav className="inspector-tabs" aria-label="Sections du profil">{tabs.map(([key, label]) => <button type="button" className={tab === key ? 'inspector-tab inspector-tab-active' : 'inspector-tab'} onClick={() => setTab(key)} key={key}>{label}</button>)}</nav>{tab === 'profile' && <ProfileTab details={details!}/>} {tab === 'account' && <AccountTab details={details!}/>} {tab === 'activity' && <ActivityTab details={details!}/>} {tab === 'events' && <EventsTab events={details!.eventHistory ?? []}/>} {tab === 'communities' && <CommunitiesTab details={details!} onNavigate={onNavigate}/>} {tab === 'security' && <SecurityTab details={details!}/>} {tab === 'moderation' && <ModerationTab details={details!}/>}</>
 }
 
 function ProfileTab({ details }: { details: UserDetails }) { const p = details.profile; const country = details.location?.country; const city = details.location?.city; const privacy = details.privacy; const preferences = details.preferences; const certifications = details.certifications.map((item) => { const type = details.certificationTypes.find((candidate) => candidate.id === item.certification_type_id); return { title: text(type?.nom, 'Certification'), lines: [type?.description ? text(type.description) : '', item.status === 'active' && (!item.issued_at || new Date(item.issued_at).getTime() <= Date.now()) && (!item.expires_at || new Date(item.expires_at).getTime() > Date.now()) && item.certification_code ? `Code : ${item.certification_code}` : '', (item.issued_at || item.obtenu_le) ? `Obtenue le ${formatDate(item.issued_at ?? item.obtenu_le)}` : '', (item.expires_at || item.expire_le) ? `Expire le ${formatDate(item.expires_at ?? item.expire_le)}` : ''].filter(Boolean) } }); return <div className="inspector-layout"><div className="inspector-main"><Card title="Identité"><InfoGrid items={[["Prénom", p.first_name], ["Nom", p.last_name], ["Nom d’utilisateur", p.username ? `@${p.username}` : null], ["Date de naissance", p.birth_date], ["Genre", humanGender(p.gender)], ["Téléphone", p.telephone], ["Slogan", p.slogan], ["Biographie", p.bio]]}/></Card><Card title="Localisation"><InfoGrid items={[["Pays", country?.nom], ["Code pays", country?.code_iso], ["Ville", city?.nom], ["Pays renseigné", p.country_id ? 'Oui' : 'Non'], ["Ville renseignée", p.city_id ? 'Oui' : 'Non'], ["Dernière modification", formatDate(p.location_updated_at)]]}/></Card><Card title="Centres d’intérêt"><ListCard items={details.interestDetails.map((interest) => ({ title: text(interest.name), lines: interest.category ? [`Catégorie : ${text(interest.category)}`] : [] }))} empty="Aucun centre d’intérêt renseigné."/></Card><Card title="Certifications" className="user-certifications-card"><ListCard items={certifications} empty="Aucune certification enregistrée pour ce membre."/></Card></div><div className="inspector-side"><Card title="Statistiques"><InfoGrid items={[["Points XP", details.statistics?.points], ["Niveau", details.statistics?.level], ["Publications", details.statistics?.posts_count], ["Communautés", details.statistics?.communities_count], ["Abonnements", details.follows.filter((f) => f.follower_id === p.user_id).length], ["Abonnés", details.follows.filter((f) => f.followed_id === p.user_id).length]]}/></Card><Card title="Confidentialité"><InfoGrid items={[["Visibilité du profil", humanVisibility(privacy?.profile_visibility)], ["Statut en ligne visible", yesNo(privacy?.show_online_status)], ["Messages reçus de", humanMessages(privacy?.allow_messages_from)], ["Afficher le pays", yesNo(privacy?.afficher_pays)], ["Afficher la ville", yesNo(privacy?.afficher_ville)], ["Afficher la dernière connexion", yesNo(privacy?.afficher_derniere_connexion)], ["Dernière modification", formatDate(privacy?.updated_at)]]}/></Card><Card title="Préférences"><InfoGrid items={[["Langue", preferences?.language], ["Thème", humanTheme(preferences?.theme)], ["Notifications", yesNo(preferences?.notifications_enabled)], ["Notifications push", yesNo(preferences?.notif_push)], ["Messages", yesNo(preferences?.notif_messages)], ["Événements", yesNo(preferences?.notif_evenements)], ["Communautés", yesNo(preferences?.notif_communautes)], ["Social", yesNo(preferences?.notif_social)], ["Dernière modification", formatDate(preferences?.updated_at)]]}/></Card></div></div> }
@@ -126,6 +127,80 @@ function ActivityPostCard({ post, popular = false, interaction = false }: { post
     <div className="inspector-post-footer"><span>♡ <strong>{Number(post.reaction_count??0).toLocaleString('fr-FR')}</strong> réactions</span><span>▤ <strong>{Number(post.comment_count??0).toLocaleString('fr-FR')}</strong> commentaires</span>{post.status && <span className="inspector-post-status">{text(post.status)}</span>}</div>
   </article>
 }
+
+function EventsTab({ events }: { events: Record<string, any>[] }) {
+  const [filter, setFilter] = useState('all')
+  const [search, setSearch] = useState('')
+  const filters = [
+    { id: 'all', label: 'Tout', count: events.length },
+    { id: 'created', label: 'Créés', count: events.filter((e) => e.roles?.includes('Créateur')).length },
+    { id: 'participation', label: 'Participation', count: events.filter((e) => e.roles?.includes('Participation / présence') || e.roles?.includes('Inscrit à une activité')).length },
+    { id: 'staff', label: 'Staff', count: events.filter((e) => e.roles?.includes('Staff') || e.roles?.includes('Staff d’une activité')).length },
+    { id: 'interactions', label: 'Interactions', count: events.filter((e) => e.roles?.some((r: string) => ['A aimé','A commenté','A noté','A partagé'].includes(r))).length },
+  ]
+  const filtered = events.filter((event) => {
+    const roles: string[] = event.roles ?? []
+    const matchesFilter = filter === 'all'
+      || (filter === 'created' && roles.includes('Créateur'))
+      || (filter === 'participation' && (roles.includes('Participation / présence') || roles.includes('Inscrit à une activité')))
+      || (filter === 'staff' && (roles.includes('Staff') || roles.includes('Staff d’une activité')))
+      || (filter === 'interactions' && roles.some((r) => ['A aimé','A commenté','A noté','A partagé'].includes(r)))
+    const term = search.trim().toLocaleLowerCase('fr')
+    const matchesSearch = !term || [event.name,event.description,event.status,event.slug,event.address,...roles].some((v) => String(v ?? '').toLocaleLowerCase('fr').includes(term))
+    return matchesFilter && matchesSearch
+  })
+  const count = (key: string) => events.reduce((total, event) => total + Number(event[key]?.length ?? 0), 0)
+  const statItems: [string, unknown][] = [
+    ['Événements concernés', events.length],
+    ['Créés par le membre', events.filter((e) => e.roles?.includes('Créateur')).length],
+    ['Présences / check-ins', count('checkins')],
+    ['Commentaires', count('comments')],
+    ['Mentions « J’aime »', count('likes')],
+    ['Notes laissées', count('ratings')],
+    ['Partages', count('shares')],
+  ]
+  return <div className="inspector-events-tab">
+    <section className="inspector-events-summary">
+      <div><span className="inspector-section-kicker">ACTIVITÉ ÉVÉNEMENTIELLE</span><h2>Tout ce qui relie ce membre aux événements</h2><p>Création, co-création, invitations, équipe, présence, calendrier, inscriptions aux activités et interactions enregistrées.</p></div>
+      <span className="inspector-count">{events.length} événement{events.length === 1 ? '' : 's'}</span>
+    </section>
+    <div className="inspector-events-stats">{statItems.map(([label,value]) => <div className="inspector-events-stat" key={label}><span>{label}</span><strong>{Number(value ?? 0).toLocaleString('fr-FR')}</strong></div>)}</div>
+    <div className="inspector-events-toolbar"><label className="inspector-events-search"><span aria-hidden="true">⌕</span><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher un événement, un statut, un rôle…" aria-label="Rechercher dans les événements"/></label><div className="inspector-events-filters" role="group" aria-label="Filtrer les événements">{filters.map((item) => <button type="button" key={item.id} onClick={() => setFilter(item.id)} className={filter === item.id ? 'inspector-events-filter inspector-events-filter-active' : 'inspector-events-filter'}>{item.label}<span>{item.count}</span></button>)}</div></div>
+    {filtered.length ? <div className="inspector-events-list">{filtered.map((event) => {
+      const roles: string[] = event.roles ?? []
+      const eventStatus = text(event.status, 'Statut inconnu')
+      const start = event.starts_at ? formatDate(event.starts_at) : 'Date non définie'
+      const end = event.ends_at ? formatDate(event.ends_at) : ''
+      const city = event.city?.nom ?? event.city_name ?? ''
+      const country = event.country?.nom ?? event.country_name ?? ''
+      const location = event.is_virtual ? 'Événement virtuel' : [event.address, city, country].filter(Boolean).join(' · ')
+      const activityNames = [...(event.activitySubscriptions ?? []), ...(event.activityStaff ?? [])].map((r: any) => r.activity?.name).filter(Boolean)
+      return <article className="inspector-event-card" key={event.id}>
+        <div className="inspector-event-cover">{event.photo ? <img src={event.photo} alt="" loading="lazy"/> : <span aria-hidden="true">✦</span>}<span className={`inspector-event-status inspector-event-status-${String(event.status ?? '').toLowerCase().replace(/[^a-z0-9_-]/g,'-')}`}>{eventStatus}</span></div>
+        <div className="inspector-event-body">
+          <div className="inspector-event-heading"><div><h3>{text(event.name, 'Événement sans titre')}</h3><p>{start}{end && end !== start ? ` → ${end}` : ''}</p></div><span className="inspector-event-price">{event.is_free === true ? 'Gratuit' : event.is_free === false ? 'Payant' : 'Tarif inconnu'}</span></div>
+          <p className="inspector-event-description">{text(event.description, 'Aucune description renseignée.')}</p>
+          {location && <p className="inspector-event-location"><span aria-hidden="true">⌖</span>{location}</p>}
+          <div className="inspector-event-roles">{roles.length ? roles.map((role) => <span key={role} className="inspector-event-role">{role}</span>) : <span className="inspector-event-role">Lien enregistré</span>}</div>
+          <div className="inspector-event-metrics">
+            {event.checkins?.length > 0 && <span>Présence : {event.checkins.map((r:any) => text(r.status,'enregistrée')).join(', ')}</span>}
+            {event.calendarEntries?.length > 0 && <span>Calendrier : {event.calendarEntries.length} entrée(s)</span>}
+            {event.likes?.length > 0 && <span>♡ {event.likes.length}</span>}
+            {event.comments?.length > 0 && <span>Commentaires : {event.comments.length}</span>}
+            {event.ratings?.length > 0 && <span>Notes : {event.ratings.map((r:any) => r.rating).filter((v:any)=>v!==null&&v!==undefined).join(', ')}</span>}
+            {event.shares?.length > 0 && <span>Partagé {event.shares.length} fois</span>}
+            {event.guestInvitations?.length > 0 && <span>Invitation invité : {event.guestInvitations.map((r:any)=>text(r.status,'sans statut')).join(', ')}</span>}
+            {event.sponsorInvitations?.length > 0 && <span>Invitation sponsor : {event.sponsorInvitations.map((r:any)=>text(r.status,'sans statut')).join(', ')}</span>}
+            {event.transfers?.length > 0 && <span>Transferts : {event.transfers.map((r:any)=>text(r.status,'sans statut')).join(', ')}</span>}
+            {activityNames.length > 0 && <span>Activités : {activityNames.join(', ')}</span>}
+          </div>
+          <div className="inspector-event-footer"><span>Événement créé le {formatDate(event.created_at)}</span><span>{event.slug ? `/${event.slug}` : text(event.id).slice(0,8)}</span></div>
+        </div>
+      </article>
+    })}</div> : <div className="inspector-empty"><strong>{events.length ? 'Aucun résultat' : 'Aucune activité événementielle trouvée'}</strong><span>{events.length ? 'Modifiez le filtre ou le texte de recherche.' : 'Les événements créés, invitations, rôles d’équipe, présences, interactions et inscriptions de ce membre apparaîtront ici dès qu’ils seront enregistrés dans la base.'}</span></div>}
+  </div>
+}
+
 function CommunitiesTab({ details, onNavigate }: { details: UserDetails; onNavigate: (path: string) => void }) {
   const memberships = details.communities.map((member, index) => ({ member, community: details.communityDetails.find((item) => item.id === member.community_id), index })).filter((item) => item.community?.id)
   return <div className="inspector-community-tab">
