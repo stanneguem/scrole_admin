@@ -10,6 +10,7 @@ import { SettingsPage } from './SettingsPage'
 import { AdministratorsPage } from './AdministratorsPage'
 import { UsersPage } from './UsersPage'
 import { CommunitiesPage } from './CommunitiesPage'
+import { CommunityDetailPage } from './CommunityDetailPage'
 import { PermissionsPage } from './PermissionsPage'
 import { RolesPage } from './RolesPage'
 import { Card } from '../../components/ui/Card'
@@ -38,7 +39,7 @@ function AdminPage() { const location = useLocation(); const navigate = useNavig
   <Route path="communities" element={<PermissionGate permission="communities.view"><CommunitiesPage onNavigate={navigate} /></PermissionGate>} />
   {Object.entries(resourcePaths).filter(([path]) => path !== "communities").map(([path, resource]) => <Route key={path} path={path} element={<PermissionGate permission={routePermissions[path]}><ResourcePage resource={resource} onNavigate={navigate} /></PermissionGate>} />)}
   <Route path="users/:id" element={<PermissionGate permission="users.view"><UserInspectorRoute /></PermissionGate>} />
-  <Route path="communities/:id" element={<PermissionGate permission="communities.view"><ContextInspectorRoute resource="communities" /></PermissionGate>} />
+  <Route path="communities/:id" element={<PermissionGate permission="communities.view"><CommunityDetailPage onNavigate={navigate} /></PermissionGate>} />
   <Route path="posts/:id" element={<PermissionGate permission="posts.view"><ContextInspectorRoute resource="posts" /></PermissionGate>} />
   <Route path="events/:id" element={<PermissionGate permission="events.view"><ContextInspectorRoute resource="events" /></PermissionGate>} />
   <Route path="reports/:id" element={<PermissionGate permission="reports.view"><ContextInspectorRoute resource="reports" /></PermissionGate>} />
