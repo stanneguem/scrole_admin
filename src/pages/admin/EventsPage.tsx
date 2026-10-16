@@ -28,6 +28,7 @@ export function EventsPage({ onNavigate }: { onNavigate: (path: string) => void 
   const [error, setError] = useState('')
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState('all')
+  const [statusFilter, setStatusFilter] = useState('all')
   const [reload, setReload] = useState(0)
 
   useEffect(() => {
@@ -52,13 +53,13 @@ export function EventsPage({ onNavigate }: { onNavigate: (path: string) => void 
     return events.filter((event) => {
       const start = event.starts_at ? new Date(event.starts_at).getTime() : null
       const end = event.ends_at ? new Date(event.ends_at).getTime() : null
-      const matchesFilter = filter === 'all' || (filter === 'upcoming' && start !== null && start > now) ||
+      const matchesFilter = (filter === 'all' || (filter === 'upcoming' && start !== null && start > now) ||
         (filter === 'ongoing' && start !== null && start <= now && (end === null || end >= now)) ||
-        (filter === 'past' && end !== null && end < now)
+        (filter === 'past' && end !== null && end < now)) && (statusFilter === 'all' || event.status === statusFilter)
       const haystack = [event.name, event.slug, event.description, event.address, event.city?.nom, event.country?.nom, event.community?.name, event.creator?.username, event.creator?.first_name, event.creator?.last_name].filter(Boolean).join(' ').toLowerCase()
       return matchesFilter && haystack.includes(query.toLowerCase().trim())
     })
-  }, [events, filter, query])
+  }, [events, filter, statusFilter, query])
 
   const ongoingCount = events.filter((event) => {
     const start = event.starts_at ? new Date(event.starts_at).getTime() : null
@@ -79,8 +80,11 @@ export function EventsPage({ onNavigate }: { onNavigate: (path: string) => void 
     <Card className="resource-card">
       <div className="resource-toolbar">
         <label className="search-field"><span aria-hidden="true">⌕</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Rechercher un événement, lieu, organisateur…" aria-label="Rechercher un événement" /></label>
-        <select className="filter-select" value={filter} onChange={(event) => setFilter(event.target.value)} aria-label="Filtrer les événements">
+        <select className="filter-select" value={filter} onChange={(event) => setFilter(event.target.value)} aria-label="Filtrer les dates">
           <option value="all">Toutes les dates</option><option value="ongoing">En cours</option><option value="upcoming">À venir</option><option value="past">Terminés</option>
+        </select>
+        <select className="filter-select" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} aria-label="Filtrer par statut">
+          <option value="all">Tous les statuts</option><option value="en_attente">En attente de validation</option><option value="active">Actifs</option><option value="rejected">Refusés / annulés</option><option value="pending_deletion">En suppression / suspendus</option><option value="deleted">Supprimés</option>
         </select>
       </div>
       {error && <div className="table-empty" role="alert"><strong>Le chargement a échoué</strong><p>{error}</p><button type="button" className="table-action" onClick={() => setReload((value) => value + 1)}>Réessayer</button></div>}
