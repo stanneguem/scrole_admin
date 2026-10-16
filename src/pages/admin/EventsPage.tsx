@@ -19,7 +19,8 @@ const statusTone = (value: string | null | undefined): 'neutral' | 'success' | '
   const status = (value ?? '').toLowerCase()
   if (['active', 'published', 'published', 'actif', 'approved'].includes(status)) return 'success'
   if (['cancelled', 'canceled', 'rejected', 'supprimé', 'deleted'].includes(status)) return 'danger'
-  if (['pending', 'draft', 'en attente'].includes(status)) return 'warning'
+  if (['pending', 'draft', 'en attente', 'en_attente'].includes(status)) return 'warning'
+  if (['rejected', 'cancelled', 'canceled', 'deleted', 'supprimé'].includes(status)) return 'danger'
   return 'info'
 }
 export function EventsPage({ onNavigate }: { onNavigate: (path: string) => void }) {
