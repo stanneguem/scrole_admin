@@ -42,6 +42,7 @@ export function CommunitiesPage({ onNavigate }: { onNavigate: (path: string) => 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [refreshKey, setRefreshKey] = useState(0)
+  const [uniqueCommunityMembers, setUniqueCommunityMembers] = useState(0)
 
   useEffect(() => {
     let cancelled = false
@@ -53,8 +54,10 @@ export function CommunitiesPage({ onNavigate }: { onNavigate: (path: string) => 
       if (invokeError || !data?.success) {
         setError(data?.message ?? invokeError?.message ?? 'Impossible de charger les communautés.')
         setCommunities([])
+        setUniqueCommunityMembers(0)
       } else {
         setCommunities((data.communities ?? []) as Community[])
+        setUniqueCommunityMembers(Number(data.unique_community_members ?? 0))
       }
       setLoading(false)
     }
@@ -75,7 +78,6 @@ export function CommunitiesPage({ onNavigate }: { onNavigate: (path: string) => 
   }, [communities, query, status])
 
   const activeCount = communities.filter((community) => community.status === 'active').length
-  const memberCount = communities.reduce((total, community) => total + community.members_count, 0)
   const postCount = communities.reduce((total, community) => total + community.posts_count, 0)
 
   return <>
@@ -90,8 +92,8 @@ export function CommunitiesPage({ onNavigate }: { onNavigate: (path: string) => 
     <section className="communities-summary" aria-label="Résumé des communautés">
       <Card><span className="communities-summary-label">Communautés enregistrées</span><strong>{communities.length}</strong><small>Données Supabase</small></Card>
       <Card><span className="communities-summary-label">Communautés actives</span><strong>{activeCount}</strong><small>Statut actif en base</small></Card>
-      <Card><span className="communities-summary-label">Membres cumulés</span><strong>{memberCount.toLocaleString('fr-FR')}</strong><small>Appartenances aux communautés</small></Card>
-      <Card><span className="communities-summary-label">Publications liées</span><strong>{postCount.toLocaleString('fr-FR')}</strong><small>Tous statuts confondus</small></Card>
+      <Card><span className="communities-summary-label">Membres des communautés</span><strong>{uniqueCommunityMembers.toLocaleString('fr-FR')}</strong><small>Utilisateurs distincts membres d’au moins une communauté</small></Card>
+      <Card><span className="communities-summary-label">Publications dans les communautés</span><strong>{postCount.toLocaleString('fr-FR')}</strong><small>Exclut les publications hors communautés</small></Card>
     </section>
 
     <Card className="resource-card communities-card">
