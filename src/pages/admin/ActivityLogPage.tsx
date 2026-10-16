@@ -3,7 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { Card } from '../../components/ui/Card'
 import { supabase } from '../../lib/supabase'
 
-type ModerationAction = { id: string; event_id: string; admin_id: string; action: string; reason: string | null; previous_status: string | null; new_status: string | null; previous_is_public: boolean | null; new_is_public: boolean | null; created_at: string };\ntype LinkedEvent = { link_id: string; event_id: string; price: number | null; added_by: string | null; linked_at: string; event: { id: string; name: string; status: string; starts_at: string | null; ends_at: string | null; creator_id: string } | null; moderation?: ModerationAction[] }
+type ModerationAction = { id: string; event_id: string; admin_id: string; action: string; reason: string | null; previous_status: string | null; new_status: string | null; previous_is_public: boolean | null; new_is_public: boolean | null; created_at: string };
+type LinkedEvent = { link_id: string; event_id: string; price: number | null; added_by: string | null; linked_at: string; event: { id: string; name: string; status: string; starts_at: string | null; ends_at: string | null; creator_id: string } | null; moderation?: ModerationAction[] }
 type Activity = { id: string; created_at: string; updated_at?: string; action: string; source: string; actor_id?: string | null; target_id?: string | null; target_type?: string | null; reason?: string | null; name?: string; status?: string; base_price?: number | null; currency_code?: string | null; added_count?: number; event_only?: boolean; description?: string | null; scheduled_deletion_at?: string | null; linked_events?: number; events?: LinkedEvent[]; details?: Record<string, unknown> }
 export function ActivityLogPage({ detailMode = false }: { detailMode?: boolean }) {
   const { id = '' } = useParams()
