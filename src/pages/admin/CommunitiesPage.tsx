@@ -115,10 +115,10 @@ export function CommunitiesPage({ onNavigate }: { onNavigate: (path: string) => 
           <tbody>{filtered.map((community) => {
             const creatorName = [community.creator?.first_name, community.creator?.last_name].filter(Boolean).join(' ') || (community.creator?.username ? `@${community.creator.username}` : 'Créateur indisponible')
             return <tr key={community.id}>
-              <td><div className="community-identity">
+              <td><button type="button" className="community-identity community-open-button" onClick={() => onNavigate("/admin/communities/" + community.id)} aria-label={"Ouvrir la communauté " + community.name}>
                 {community.photo_profile ? <img src={community.photo_profile} alt="" className="community-avatar" /> : <span className="community-avatar community-avatar-fallback">{community.name.slice(0, 1).toUpperCase() || 'C'}</span>}
                 <span><strong>{community.name}</strong><small>{community.slug}</small><small>{community.description || 'Aucune description'}</small></span>
-              </div></td>
+              </button></td>
               <td>{creatorName}</td>
               <td><StatusBadge tone={statusTone(community.status)}>{statusLabel[community.status] ?? community.status}</StatusBadge>{community.pending_posts_count > 0 && <small className="community-pending-count">{community.pending_posts_count} publication(s) en attente</small>}</td>
               <td>{community.members_count.toLocaleString('fr-FR')}</td>
