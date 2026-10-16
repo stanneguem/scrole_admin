@@ -8,13 +8,12 @@ const db=createClient(url,key),token=req.headers.get("Authorization")?.replace(/
 const {data:a,error:ae}=await db.auth.getUser(token);if(ae||!a.user)return out({success:false,message:"Session invalide."},401);
 const {data:admin,error:de}=await db.from("administrateur_profil").select("id,role,actif").eq("auth_id",a.user.id).eq("actif",true).maybeSingle();if(de)throw de;if(!admin||!["super_admin","admin","moderateur"].includes(admin.role))return out({success:false,message:"Accès refusé."},403);
 const b=await req.json().catch(()=>({})),cid=typeof b.community_id==="string"?b.community_id:"";if(!cid)return out({success:false,message:"Identifiant manquant."},400);
-const {data:c,error:ce}=await db.from("communities").select("id,creator_id,name,slug,description,photo_profile,photo_cover,visibility,status,created_at,updated_at,scheduled_deletion_at,require_manual_approval").eq("id",cid).maybeSingle();if(ce)throw ce;
-if(!c)return out({success:false,message:"Communauté introuvable."},404);
+const {data:c,error:ce}=await db.from("communities").select("id,creator_id,name,slug,description,photo_profile,photo_cover,visibility,status,created_at,updated_at,scheduled_deletion_at,require_manual_approval").eq("id",cid).maybeSingle();if(ce)throw ce;if(!c)return out({success:false,message:"Communauté introuvable."},404);
 const action=typeof b.action==="string"?b.action:"";
 if(action){
  const elevated=["super_admin","admin"].includes(admin.role);
  if(["remove_member","change_member_role","review_join_request"].includes(action)&&!elevated)return out({success:false,message:"Droits insuffisants."},403);
- if(["moderate_post","restore_post"].includes(action)){
+ if(action==="moderate_post"||action==="restore_post"){
   const pid=typeof b.post_id==="string"?b.post_id:"";
   const {data:p,error:e}=await db.from("community_posts").select("id").eq("id",pid).eq("community_id",cid).maybeSingle();if(e)throw e;if(!p)return out({success:false,message:"Publication introuvable."},404);
   if(action==="restore_post"){const {error:x}=await db.from("community_posts").update({status:"active",moderation_reason:null,deleted_at:null,deleted_by:null,purge_at:null}).eq("id",pid).eq("community_id",cid);if(x)throw x;return out({success:true,message:"Publication restaurée."});}
@@ -46,7 +45,7 @@ if(action){
   const {error:x}=await db.from("community_spam_flags").update({status,handled_by:auth.user.id,handled_at:new Date().toISOString()}).eq("id",fid).eq("community_id",cid);if(x)throw x;return out({success:true,message:status==="confirme"?"Signalement confirmé.":"Signalement ignoré."});
  }
  return out({success:false,message:"Action inconnue."},400);
-
+}
 const [mr,pr,fr,jr,mc,pc]=await Promise.all([
 db.from("community_members").select("community_id,user_id,role,joined_at").eq("community_id",cid).order("joined_at",{ascending:false}).limit(500),
 db.from("community_posts").select("id,community_id,author_id,content,photo,photos,video_url,video_thumbnail_url,status,moderation_reason,created_at,updated_at,deleted_at").eq("community_id",cid).order("created_at",{ascending:false}).limit(100),
