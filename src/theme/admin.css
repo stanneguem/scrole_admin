@@ -385,3 +385,11 @@
 @media(max-width:900px){.inspector-community-grid{grid-template-columns:1fr}.inspector-moderation-options{grid-template-columns:1fr}}
 @media(max-width:640px){.inspector-community-summary{padding:15px;gap:10px}.inspector-community-summary h2{font-size:15px}.inspector-community-cover{height:88px}.inspector-community-card-body{padding:13px}.inspector-moderation-intro{align-items:flex-start;flex-wrap:wrap;padding:12px}.inspector-moderation-status{margin-left:53px}.inspector-moderation-option{padding:11px}}
 @media(prefers-reduced-motion:reduce){.inspector-community-card,.inspector-moderation-option{transition:none}}
+
+/* Reusable certification identity marker. Inherits active light/dark theme tokens. */
+.certification-code-inline{display:inline-flex;align-items:center;gap:7px;max-width:100%;vertical-align:middle;flex-wrap:wrap}
+.certification-code-inline code{display:inline-flex;align-items:center;max-width:100%;padding:4px 7px;border:1px solid var(--color-border);border-radius:6px;background:var(--color-surface-muted);color:var(--color-text);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;font-weight:750;letter-spacing:.025em;overflow-wrap:anywhere}
+.certification-code-compact{gap:5px}
+.certification-code-compact .status-badge{font-size:9px;padding:3px 6px}
+.certification-code-compact code{font-size:9px;padding:3px 5px}
+.profile-name-line .certification-code-inline{margin-left:2px}
