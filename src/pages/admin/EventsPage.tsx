@@ -9,10 +9,10 @@ type EventRow = {
   is_public: boolean | null; is_free: boolean | null; address: string | null
   city?: { nom?: string | null } | null; country?: { nom?: string | null } | null
   community?: { name?: string | null } | null
-  creator?: { username?: string | null; first_name?: string | null; last_name?: string | null } | null
+  creator?: { username?: string | null; name?: string | null; first_name?: string | null; last_name?: string | null } | null
   participant_count?: number; checked_in_count?: number
 }
-type Payload = { events?: EventRow[]; data?: EventRow[]; error?: string }
+type Payload = { events?: EventRow[]; data?: EventRow[]; error?: string; message?: string }
 
 const dateLabel = (value: string | null | undefined) => value ? new Date(value).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }) : 'Date non précisée'
 const statusTone = (value: string | null | undefined): 'neutral' | 'success' | 'warning' | 'danger' | 'info' => {
@@ -39,7 +39,7 @@ export function EventsPage({ onNavigate }: { onNavigate: (path: string) => void 
         if (invokeError) throw invokeError
         const payload = data as Payload | EventRow[] | null
         const rows = Array.isArray(payload) ? payload : (payload?.events ?? payload?.data ?? [])
-        if (!Array.isArray(rows)) throw new Error((payload as Payload | null)?.error || 'Réponse inattendue du serveur.')
+        if (!Array.isArray(rows)) throw new Error((payload as Payload | null)?.message || (payload as Payload | null)?.error || 'Réponse inattendue du serveur.')
         setEvents(rows)
       })
       .catch((reason: unknown) => { if (alive) setError(reason instanceof Error ? reason.message : 'Impossible de charger les événements.') })
@@ -87,7 +87,7 @@ export function EventsPage({ onNavigate }: { onNavigate: (path: string) => void 
       {loading && <div className="table-empty">Chargement des événements…</div>}
       {!loading && !error && <div className="table-scroll"><table className="admin-table"><thead><tr><th>Événement</th><th>Date et lieu</th><th>Organisateur</th><th>Participation</th><th>Statut</th><th>Visibilité</th></tr></thead><tbody>
         {filtered.map((event) => {
-          const creatorName = [event.creator?.first_name, event.creator?.last_name].filter(Boolean).join(' ') || event.creator?.username || 'Organisateur inconnu'
+          const creatorName = event.creator?.name || [event.creator?.first_name, event.creator?.last_name].filter(Boolean).join(' ') || event.creator?.username || 'Organisateur inconnu'
           const place = [event.address, event.city?.nom, event.country?.nom].filter(Boolean).join(', ') || (event.is_virtual ? 'En ligne' : 'Lieu non précisé')
           return <tr key={event.id} onClick={() => onNavigate('/admin/events/' + event.id)} style={{ cursor: 'pointer' }}>
             <td><strong>{event.name || event.slug || 'Événement sans nom'}</strong><small>{event.id}{event.community?.name ? ' · ' + event.community.name : ''}</small></td>
