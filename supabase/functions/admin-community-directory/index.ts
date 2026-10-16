@@ -56,7 +56,7 @@ Deno.serve(async (req: Request) => {
 
     const [membersResult, postsResult, profilesResult] = await Promise.all([
       ids.length
-        ? service.from("community_members").select("community_id").in("community_id", ids)
+        ? service.from("community_members").select("community_id, user_id").in("community_id", ids)
         : Promise.resolve({ data: [], error: null }),
       ids.length
         ? service.from("community_posts").select("community_id, status").in("community_id", ids)
@@ -71,8 +71,10 @@ Deno.serve(async (req: Request) => {
     if (profilesResult.error) throw profilesResult.error;
 
     const memberCounts = new Map<string, number>();
+    const uniqueMemberIds = new Set<string>();
     for (const row of membersResult.data ?? []) {
       memberCounts.set(row.community_id, (memberCounts.get(row.community_id) ?? 0) + 1);
+      if (row.user_id) uniqueMemberIds.add(row.user_id);
     }
 
     const postCounts = new Map<string, number>();
@@ -93,7 +95,7 @@ Deno.serve(async (req: Request) => {
       creator: creatorById.get(community.creator_id) ?? null,
     }));
 
-    return json({ success: true, communities: result, total: result.length, truncated: result.length === 500, requesterRole: requester.role });
+    return json({ success: true, communities: result, total: result.length, unique_community_members: uniqueMemberIds.size, community_memberships: (membersResult.data ?? []).length, community_posts: (postsResult.data ?? []).length, truncated: result.length === 500, requesterRole: requester.role });
   } catch (error) {
     console.error("admin-community-directory error", error);
     return json({
