@@ -1,0 +1,7 @@
+.access-denied { min-height: 100svh; display: grid; place-items: center; align-content: center; gap: 34px; padding: 28px; background: var(--color-bg); color: var(--color-text); font-family: var(--font-sans); text-align: center; }
+.access-denied > .scrole-logo { position: absolute; top: 32px; left: 32px; }
+.access-panel { width: min(100%, 430px); padding: 42px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); box-shadow: var(--shadow-md); }
+.access-mark { display: grid; place-items: center; width: 42px; height: 42px; margin: 0 auto 18px; border-radius: 50%; background: var(--color-danger-soft); color: var(--color-danger); font-size: 20px; font-weight: 800; }
+.access-panel h1 { margin: 0 0 12px; color: var(--color-text); font-size: 25px; }
+.access-panel > p:not(.auth-eyebrow) { margin: 0 0 25px; color: var(--color-text-muted); font-size: 13px; line-height: 1.6; }
+@media (max-width: 520px) { .access-denied > .scrole-logo { top: 22px; left: 22px; } .access-panel { padding: 30px 22px; } }
