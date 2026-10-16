@@ -2,7 +2,7 @@ export type Permission =
   | 'users.view' | 'users.edit' | 'users.suspend' | 'users.unsuspend' | 'users.ban' | 'users.unban'
   | 'communities.view' | 'communities.edit' | 'communities.suspend' | 'communities.unsuspend' | 'communities.delete'
   | 'posts.view' | 'posts.edit' | 'posts.hide' | 'posts.restore' | 'posts.delete'
-  | 'events.view' | 'events.edit' | 'events.suspend' | 'events.restore' | 'events.delete'
+  | 'events.view' | 'events.edit' | 'events.approve' | 'events.reject' | 'events.suspend' | 'events.restore' | 'events.delete'
   | 'reports.view' | 'reports.assign' | 'reports.resolve' | 'reports.reject'
   | 'administrators.view' | 'administrators.create' | 'administrators.edit' | 'administrators.disable' | 'administrators.manage_roles'
   | 'system.view' | 'settings.edit'
