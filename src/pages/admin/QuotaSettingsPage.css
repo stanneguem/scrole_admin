@@ -1,0 +1,21 @@
+.quota-settings-page{display:flex;flex-direction:column;gap:24px;min-width:0}
+.quota-settings-page .admin-page-header{align-items:flex-end;gap:24px}
+.quota-settings-page .admin-page-header p{max-width:760px;margin:0;line-height:1.55}
+.quota-info{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px}
+.quota-info span{padding:13px 15px;border:1px solid var(--color-border);border-radius:10px;background:var(--color-surface-muted);color:var(--color-text-muted);font-size:12px;line-height:1.5}
+.quota-section{display:flex;flex-direction:column;gap:14px}
+.quota-section>header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 4px}
+.quota-section>header h2{margin:0;font-size:17px;color:var(--color-text)}
+.quota-section>header span{font-size:11px;color:var(--color-text-muted);background:var(--color-surface-muted);border:1px solid var(--color-border);padding:5px 9px;border-radius:999px}
+.quota-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:14px;align-items:stretch}
+.quota-card{display:flex;flex-direction:column;gap:12px;min-width:0}
+.quota-card-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.quota-card-heading h3{margin:0;color:var(--color-text);font-size:15px;line-height:1.4}
+.quota-card-heading>span{flex:0 0 auto;border-radius:8px;padding:5px 9px;background:var(--color-brand-soft);color:var(--color-brand-strong);font-weight:800}
+.quota-card>p{margin:0;min-height:42px;color:var(--color-text-muted);font-size:12px;line-height:1.55}
+.quota-input-label{font-size:11px;font-weight:700;color:var(--color-text)}
+.quota-editor{display:flex;align-items:center;gap:9px}
+.quota-editor input{min-width:0;width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid var(--color-border);border-radius:9px;background:var(--color-surface-muted);color:var(--color-text);font:inherit}
+.quota-card small{font-size:10px;color:var(--color-text-subtle);line-height:1.5;overflow-wrap:anywhere}
+.quota-card code{font-size:10px}
+@media(max-width:620px){.quota-settings-page .admin-page-header{align-items:stretch;flex-direction:column}.quota-editor{align-items:stretch;flex-direction:column}.quota-editor .scrole-button{width:100%}}
