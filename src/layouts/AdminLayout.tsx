@@ -23,6 +23,7 @@ const navGroups: { label: string; items: AdminNavItem[] }[] = [
     { label: 'Rôles', path: '/admin/roles', icon: '◆', requiredPermission: 'administrators.manage_roles' },
     { label: 'Permissions', path: '/admin/permissions', icon: '⊞', requiredPermission: 'administrators.manage_roles' },
     { label: 'Tarifs certifications', path: '/admin/certification-pricing', icon: '₣', requiredPermission: 'settings.edit' },
+    { label: 'Tarifs événements et communautés', path: '/admin/entity-certification-prices', icon: '€', requiredPermission: 'settings.edit' },
     { label: 'Quotas Scrole', path: '/admin/quotas', icon: '↔', requiredPermission: 'certifications.manage' },
   ] },
   { label: 'Système', items: [
