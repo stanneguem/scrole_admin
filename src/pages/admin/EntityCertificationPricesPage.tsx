@@ -4,6 +4,7 @@ import { ScroleButton } from '../../components/ui/ScroleButton'
 import { StatusBadge } from '../../components/ui/StatusBadge'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
+import './EntityCertificationPricesPage.css'
 type Price = { id:string; pricing_group:string; amount:number|string; currency:string; active:boolean; updated_at:string }
 type Draft = { amount:string; currency:string; active:boolean }
 const regions=['Afrique centrale','Afrique','Hors Afrique']
