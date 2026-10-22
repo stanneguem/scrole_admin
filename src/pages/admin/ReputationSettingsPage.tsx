@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Card } from '../../components/ui/Card'
 import { ScroleButton } from '../../components/ui/ScroleButton'
 import { supabase } from '../../lib/supabase'
@@ -119,7 +119,7 @@ export function ReputationSettingsPage() {
     setSaving(null)
   }
 
-  const applyPenalty = async (event: React.FormEvent<HTMLFormElement>) => {
+  const applyPenalty = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setError('')
     setMessage('')
