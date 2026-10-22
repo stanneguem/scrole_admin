@@ -37,6 +37,14 @@ export function ReputationSettingsPage() {
   const [saving, setSaving] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
+  const [penaltyUserId, setPenaltyUserId] = useState('')
+  const [penaltyScope, setPenaltyScope] = useState<'global' | 'community'>('global')
+  const [penaltyCommunityId, setPenaltyCommunityId] = useState('')
+  const [penaltySourceType, setPenaltySourceType] = useState('moderation_case')
+  const [penaltySourceId, setPenaltySourceId] = useState('')
+  const [penaltyReason, setPenaltyReason] = useState('')
+  const [penaltyPoints, setPenaltyPoints] = useState(1)
+  const [applyingPenalty, setApplyingPenalty] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -111,6 +119,39 @@ export function ReputationSettingsPage() {
     setSaving(null)
   }
 
+  const applyPenalty = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setError('')
+    setMessage('')
+    if (!penaltyUserId.trim() || !penaltySourceId.trim() || penaltyReason.trim().length < 8) {
+      setError('Identifiant utilisateur, référence de modération et motif détaillé obligatoires.')
+      return
+    }
+    if (penaltyScope === 'community' && !penaltyCommunityId.trim()) {
+      setError('Saisissez l’identifiant de la communauté pour une pénalité locale.')
+      return
+    }
+    setApplyingPenalty(true)
+    const { error: rpcError } = await supabase.rpc('admin_apply_reputation_penalty', {
+      p_user_id: penaltyUserId.trim(),
+      p_scope_type: penaltyScope,
+      p_scope_id: penaltyScope === 'community' ? penaltyCommunityId.trim() : null,
+      p_source_type: penaltySourceType.trim(),
+      p_source_id: penaltySourceId.trim(),
+      p_reason: penaltyReason.trim(),
+      p_points: penaltyPoints,
+    })
+    if (rpcError) setError(rpcError.message)
+    else {
+      setMessage('Pénalité enregistrée dans le journal de réputation.')
+      setPenaltyUserId('')
+      setPenaltyCommunityId('')
+      setPenaltySourceId('')
+      setPenaltyReason('')
+    }
+    setApplyingPenalty(false)
+  }
+
   if (user?.role !== 'Super Admin' && !user?.permissions.includes('settings.edit')) {
     return <Card><div className="table-empty"><strong>Accès réservé</strong><p>La gestion de la réputation exige la permission « settings.edit ».</p></div></Card>
   }
@@ -131,6 +172,19 @@ export function ReputationSettingsPage() {
     </Card>
     {message && <div className="toast-message" role="status">{message}</div>}
     {error && <div className="error-message" role="alert">{error}</div>}
+    <Card title="Pénalité de modération confirmée">
+      <p className="reputation-help">À utiliser uniquement après décision de modération. Chaque pénalité est liée à une référence et à un motif auditable ; elle ne peut pas être appliquée depuis l’application mobile.</p>
+      <form className="reputation-penalty-form" onSubmit={event => void applyPenalty(event)}>
+        <label>UUID de l’utilisateur<input value={penaltyUserId} onChange={event => setPenaltyUserId(event.target.value)} required placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" /></label>
+        <label>Portée<select value={penaltyScope} onChange={event => setPenaltyScope(event.target.value as 'global' | 'community')}><option value="global">Réputation globale</option><option value="community">Communauté uniquement</option></select></label>
+        {penaltyScope === 'community' && <label>UUID de la communauté<input value={penaltyCommunityId} onChange={event => setPenaltyCommunityId(event.target.value)} required /></label>}
+        <label>Type de dossier<input value={penaltySourceType} onChange={event => setPenaltySourceType(event.target.value)} required /></label>
+        <label>Référence du dossier<input value={penaltySourceId} onChange={event => setPenaltySourceId(event.target.value)} required /></label>
+        <label>Points de pénalité<select value={penaltyPoints} onChange={event => setPenaltyPoints(Number(event.target.value))}><option value={1}>−1</option><option value={2}>−2</option><option value={3}>−3</option><option value={4}>−4</option><option value={5}>−5</option></select></label>
+        <label className="reputation-penalty-reason">Motif détaillé<textarea value={penaltyReason} onChange={event => setPenaltyReason(event.target.value)} minLength={8} maxLength={1000} required rows={3} /></label>
+        <div className="reputation-rule-actions"><span>La note publique est recalculée lors de la prochaine consultation.</span><ScroleButton type="submit" disabled={applyingPenalty}>{applyingPenalty ? 'Enregistrement…' : 'Enregistrer la pénalité'}</ScroleButton></div>
+      </form>
+    </Card>
     {loading ? <Card><p>Chargement des règles…</p></Card> : rules.map(original => {
       const rule = drafts[original.rule_key] ?? original
       const dirty = JSON.stringify(rule) !== JSON.stringify(original)
