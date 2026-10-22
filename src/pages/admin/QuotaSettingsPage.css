@@ -1,0 +1,33 @@
+.quota-settings-page{display:flex;flex-direction:column;gap:28px;min-width:0;padding:4px 2px 28px}
+.quota-settings-page .admin-page-header{align-items:center;gap:24px;padding:8px 4px 4px}
+.quota-settings-page .admin-page-header h1{margin:0 0 8px;letter-spacing:-.035em;font-size:clamp(25px,3vw,32px);line-height:1.15}
+.quota-settings-page .admin-page-header p{max-width:760px;margin:0;line-height:1.7;color:var(--color-text-muted)}
+.quota-settings-page .admin-page-actions{display:flex;gap:10px;flex-shrink:0}
+.quota-settings-page>.card{overflow:hidden;border-radius:16px}
+.quota-info{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:14px;padding:6px}
+.quota-info span{display:flex;align-items:flex-start;gap:12px;min-height:72px;padding:17px 18px;border:1px solid var(--color-border);border-radius:12px;background:var(--color-surface-muted);color:var(--color-text-muted);font-size:12px;line-height:1.65}
+.quota-section{display:flex;flex-direction:column;gap:16px}
+.quota-section>header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 6px}
+.quota-section>header h2{margin:0;font-size:18px;letter-spacing:-.015em;color:var(--color-text)}
+.quota-section>header span{font-size:11px;font-weight:700;color:var(--color-text-muted);background:var(--color-surface-muted);border:1px solid var(--color-border);padding:6px 11px;border-radius:999px;white-space:nowrap}
+.quota-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,330px),1fr));gap:18px;align-items:stretch}
+.quota-card{display:flex;flex-direction:column;gap:15px;min-width:0;padding:24px!important;border:1px solid var(--color-border);border-radius:15px;box-shadow:0 3px 12px rgba(15,23,42,.035);transition:border-color .16s ease,box-shadow .16s ease,transform .16s ease}
+.quota-card:hover{border-color:var(--color-brand-soft);box-shadow:0 8px 24px rgba(15,23,42,.07);transform:translateY(-1px)}
+.quota-card-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding-bottom:13px;border-bottom:1px solid var(--color-border)}
+.quota-card-heading h3{margin:2px 0 0;color:var(--color-text);font-size:15px;line-height:1.5;font-weight:750}
+.quota-card-heading>span{flex:0 0 auto;min-width:42px;text-align:center;border-radius:10px;padding:7px 11px;background:var(--color-brand-soft);color:var(--color-brand-strong);font-size:15px;font-weight:800}
+.quota-card>p{margin:0;min-height:46px;color:var(--color-text-muted);font-size:12px;line-height:1.7}
+.quota-input-label{display:block;margin-top:2px;font-size:11px;font-weight:750;color:var(--color-text)}
+.quota-editor{display:flex;align-items:center;gap:10px;margin-top:-7px}
+.quota-editor input{min-height:42px;min-width:0;width:100%;box-sizing:border-box;padding:10px 13px;border:1px solid var(--color-border);border-radius:10px;background:var(--color-surface-muted);color:var(--color-text);font:inherit;outline:none;transition:border-color .15s ease,box-shadow .15s ease}
+.quota-editor input:focus{border-color:var(--color-brand-strong);box-shadow:0 0 0 3px var(--color-brand-soft)}
+.quota-editor .scrole-button{flex:0 0 auto;min-height:42px}
+.quota-card small{display:block;font-size:10px;color:var(--color-text-subtle);line-height:1.6;overflow-wrap:anywhere}
+.quota-card small+small{margin-top:-7px}
+.quota-card code{display:inline-block;margin-left:3px;padding:2px 5px;border-radius:5px;background:var(--color-surface-muted);font-size:10px}
+.quota-settings-page .toast-message,.quota-settings-page .error-message{padding:14px 18px;border-radius:12px;line-height:1.5}
+.quota-settings-page .error-message{border:1px solid #ef444455}
+@media(min-width:1100px){.quota-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){.quota-settings-page{gap:22px}.quota-settings-page .admin-page-header{align-items:stretch;flex-direction:column;padding:0 2px}.quota-settings-page .admin-page-actions{width:100%}.quota-settings-page .admin-page-actions>*{flex:1}.quota-info{padding:2px}.quota-card{padding:19px!important}.quota-grid{gap:13px}}
+@media(max-width:620px){.quota-editor{align-items:stretch;flex-direction:column}.quota-editor .scrole-button{width:100%}.quota-card>p{min-height:0}.quota-section>header{padding:0 2px}}
+@media(prefers-reduced-motion:reduce){.quota-card,.quota-editor input{transition:none}}

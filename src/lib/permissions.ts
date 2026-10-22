@@ -19,7 +19,7 @@ const rolePermissions: Record<Role, Permission[]> = {
     'events.view', 'events.edit', 'events.suspend', 'events.restore', 'events.delete',
     'reports.view', 'reports.assign', 'reports.resolve', 'reports.reject',
     'administrators.view', 'administrators.create', 'administrators.edit', 'administrators.disable', 'administrators.manage_roles',
-    'system.view', 'settings.edit',
+    'system.view', 'settings.edit', 'certifications.manage',
   ],
 }
 
