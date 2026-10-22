@@ -23,6 +23,7 @@ const navGroups: { label: string; items: AdminNavItem[] }[] = [
     { label: 'Rôles', path: '/admin/roles', icon: '◆', requiredPermission: 'administrators.manage_roles' },
     { label: 'Permissions', path: '/admin/permissions', icon: '⊞', requiredPermission: 'administrators.manage_roles' },
     { label: 'Tarifs certifications', path: '/admin/certification-pricing', icon: '₣', requiredPermission: 'settings.edit' },
+    { label: 'Règles groupes', path: '/admin/group-chat-rules', icon: '◎', requiredPermission: 'certifications.manage' },
   ] },
   { label: 'Système', items: [
     { label: 'Activité', path: '/admin/system/activity', icon: '⌁', requiredPermission: 'system.view' },
