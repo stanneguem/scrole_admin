@@ -25,7 +25,7 @@ const navGroups: { label: string; items: AdminNavItem[] }[] = [
     { label: 'Tarifs certifications', path: '/admin/certification-pricing', icon: '₣', requiredPermission: 'settings.edit' },
     { label: 'Tarifs événements et communautés', path: '/admin/entity-certification-prices', icon: '€', requiredPermission: 'settings.edit' },
     { label: 'Quotas Scrole', path: '/admin/quotas', icon: '↔', requiredPermission: 'certifications.manage' },
-    { label: 'Réputation Scrole', path: '/admin/reputation', icon: '★', requiredPermission: 'reputation.manage' },
+    { label: 'Réputation Scrole', path: '/admin/reputation', icon: '★', requiredPermission: 'settings.edit' },
   ] },
   { label: 'Système', items: [
     { label: 'Activité', path: '/admin/system/activity', icon: '⌁', requiredPermission: 'system.view' },
