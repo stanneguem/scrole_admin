@@ -78,10 +78,19 @@ export function ReputationSettingsPage() {
   }
 
   const patchConfig = (key: string, configKey: string, value: number) => {
-    setDrafts(current => ({
-      ...current,
-      [key]: { ...current[key], config: { ...current[key].config, [configKey]: value } },
-    }))
+    setDrafts(current => {
+      const target = current[key]
+      if (!target) return current
+      const targetDimension = String(target.config.dimension ?? '')
+      const next = { ...current }
+      for (const [ruleKey, rule] of Object.entries(current)) {
+        const sameDimension = targetDimension !== '' && String(rule.config.dimension ?? '') === targetDimension
+        if (ruleKey === key || (configKey === 'dimension_weight' && sameDimension)) {
+          next[ruleKey] = { ...rule, config: { ...rule.config, [configKey]: value } }
+        }
+      }
+      return next
+    })
   }
 
   const save = async (rule: ReputationRule) => {
