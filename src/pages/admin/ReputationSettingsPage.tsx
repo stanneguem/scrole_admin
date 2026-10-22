@@ -111,8 +111,8 @@ export function ReputationSettingsPage() {
     setSaving(null)
   }
 
-  if (user?.role !== 'Super Admin' && !user?.permissions.includes('reputation.manage')) {
-    return <Card><div className="table-empty"><strong>Accès réservé</strong><p>La gestion de la réputation exige la permission « reputation.manage ».</p></div></Card>
+  if (user?.role !== 'Super Admin' && !user?.permissions.includes('settings.edit')) {
+    return <Card><div className="table-empty"><strong>Accès réservé</strong><p>La gestion de la réputation exige la permission « settings.edit ».</p></div></Card>
   }
 
   return <div className="reputation-settings-page">
