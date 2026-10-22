@@ -20,6 +20,7 @@ import { StatusBadge } from '../../components/ui/StatusBadge'
 import { UserInspectorPage } from './UserInspectorPage'
 import { ContextInspectorPage } from './ContextInspectorPage'
 import { CertificationPricingPage } from './CertificationPricingPage'
+import { GroupChatRulesPage } from './GroupChatRulesPage'
 import { ActivityValidationPage } from './ActivityValidationPage'
 import { ActivityLogPage } from './ActivityLogPage'
 import { EventsPage } from './EventsPage'
@@ -35,6 +36,7 @@ function AdminPage() { const location = useLocation(); const navigate = useNavig
   <Route path="activities/validation" element={<PermissionGate permission="activity.view"><ActivityValidationPage /></PermissionGate>} />
   <Route path="settings" element={<PermissionGate permission="settings.edit"><SettingsPage /></PermissionGate>} />
   <Route path="certification-pricing" element={<PermissionGate permission="settings.edit"><CertificationPricingPage /></PermissionGate>} />
+  <Route path="group-chat-rules" element={<PermissionGate permission="certifications.manage"><GroupChatRulesPage /></PermissionGate>} />
   <Route path="permissions" element={<PermissionGate permission="administrators.manage_roles"><PermissionsPage /></PermissionGate>} />
   <Route path="roles" element={<PermissionGate permission="administrators.manage_roles"><RolesPage /></PermissionGate>} />
   <Route path="administrators" element={<PermissionGate permission="administrators.view"><AdministratorsPage /></PermissionGate>} />
