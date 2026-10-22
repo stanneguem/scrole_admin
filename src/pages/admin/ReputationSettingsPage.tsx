@@ -70,7 +70,10 @@ export function ReputationSettingsPage() {
       const weight = numberConfig(rule, 'dimension_weight', 0)
       if (dimension && weight > 0) byDimension.set(dimension, Math.max(byDimension.get(dimension) ?? 0, weight))
     }
-    return [...byDimension.entries()].sort((a, b) => b[1] - a[1])
+    const total = [...byDimension.values()].reduce((sum, weight) => sum + weight, 0)
+    return [...byDimension.entries()]
+      .map(([dimension, weight]) => [dimension, total > 0 ? weight / total : 0] as [string, number])
+      .sort((a, b) => b[1] - a[1])
   }, [drafts])
 
   const patchRule = (key: string, patch: Partial<ReputationRule>) => {
@@ -188,7 +191,7 @@ export function ReputationSettingsPage() {
           <div className="reputation-weight-track"><span style={{ width: `${Math.min(100, Math.max(0, weight * 100))}%` }} /></div>
         </div>)}
       </div>
-      <p className="reputation-help">Les dimensions sont normalisées séparément, puis pondérées. Les unités internes du journal ne sont jamais affichées comme score public.</p>
+      <p className="reputation-help">Les poids affichés sont normalisés à 100 % au calcul. Chaque dimension est normalisée séparément, puis pondérée. Les unités internes du journal ne sont jamais affichées comme score public.</p>
     </Card>
     {message && <div className="toast-message" role="status">{message}</div>}
     {error && <div className="error-message" role="alert">{error}</div>}
