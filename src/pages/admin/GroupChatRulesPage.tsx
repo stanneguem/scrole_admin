@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Card } from '../../components/ui/Card'
 import { ScroleButton } from '../../components/ui/ScroleButton'
 import { supabase } from '../../lib/supabase'
+import './GroupChatRulesPage.css'
 
 type Quota = {
   quota_key: string
