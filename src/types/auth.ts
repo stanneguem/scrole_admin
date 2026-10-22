@@ -6,7 +6,7 @@ export type Permission =
   | 'reports.view' | 'reports.assign' | 'reports.resolve' | 'reports.reject'
   | 'administrators.view' | 'administrators.create' | 'administrators.edit' | 'administrators.disable' | 'administrators.manage_roles'
   | 'system.view' | 'settings.edit'
-  | 'certifications.manage' | 'reputation.manage' | 'certifications.gift' | 'roles.manage' | 'permissions.manage' | 'activity.view' | 'activities.validate'
+  | 'certifications.manage' | 'certifications.gift' | 'roles.manage' | 'permissions.manage' | 'activity.view' | 'activities.validate'
 
 export type Role = 'Super Admin' | 'Admin' | 'Moderator'
 
