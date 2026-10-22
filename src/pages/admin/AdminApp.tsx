@@ -22,6 +22,7 @@ import { ContextInspectorPage } from './ContextInspectorPage'
 import { CertificationPricingPage } from './CertificationPricingPage'
 import { EntityCertificationPricesPage } from './EntityCertificationPricesPage'
 import { QuotaSettingsPage } from './QuotaSettingsPage'
+import { ReputationSettingsPage } from './ReputationSettingsPage'
 import { ActivityValidationPage } from './ActivityValidationPage'
 import { ActivityLogPage } from './ActivityLogPage'
 import { EventsPage } from './EventsPage'
@@ -29,7 +30,7 @@ import { EventDetailPage } from './EventDetailPage'
 import { useAuth } from '../../hooks/useAuth'
 
 const resourcePaths: Record<string, ResourceKey> = { reports: 'reports', communities: 'communities', posts: 'posts', events: 'events', administrators: 'administrators', 'system/activity': 'activity', 'moderation/actions': 'moderation-actions', 'moderation/hidden': 'hidden-content' }
-const routePermissions: Record<string, Permission> = { reports: 'reports.view', communities: 'communities.view', posts: 'posts.view', events: 'events.view', administrators: 'administrators.view', roles: 'administrators.manage_roles', 'system/activity': 'system.view', 'moderation/actions': 'reports.view', 'moderation/hidden': 'posts.hide', 'certification-pricing': 'settings.edit', 'entity-certification-prices': 'settings.edit', quotas: 'certifications.manage', settings: 'settings.edit' }
+const routePermissions: Record<string, Permission> = { reports: 'reports.view', communities: 'communities.view', posts: 'posts.view', events: 'events.view', administrators: 'administrators.view', roles: 'administrators.manage_roles', 'system/activity': 'system.view', 'moderation/actions': 'reports.view', 'moderation/hidden': 'posts.hide', 'certification-pricing': 'settings.edit', 'entity-certification-prices': 'settings.edit', quotas: 'certifications.manage', reputation: 'reputation.manage', settings: 'settings.edit' }
 
 function PermissionGate({ permission, children }: { permission: Permission; children: ReactNode }) { const { hasPermission } = useAuth(); return hasPermission(permission) ? <>{children}</> : <Navigate to="/access-denied" replace /> }
 function AdminPage() { const location = useLocation(); const navigate = useNavigate(); return <AdminLayout pathname={location.pathname}><Routes>
@@ -39,6 +40,7 @@ function AdminPage() { const location = useLocation(); const navigate = useNavig
   <Route path="certification-pricing" element={<PermissionGate permission="settings.edit"><CertificationPricingPage /></PermissionGate>} />
   <Route path="entity-certification-prices" element={<PermissionGate permission="settings.edit"><EntityCertificationPricesPage /></PermissionGate>} />
   <Route path="quotas" element={<PermissionGate permission="certifications.manage"><QuotaSettingsPage /></PermissionGate>} />
+  <Route path="reputation" element={<PermissionGate permission="reputation.manage"><ReputationSettingsPage /></PermissionGate>} />
   <Route path="permissions" element={<PermissionGate permission="administrators.manage_roles"><PermissionsPage /></PermissionGate>} />
   <Route path="roles" element={<PermissionGate permission="administrators.manage_roles"><RolesPage /></PermissionGate>} />
   <Route path="administrators" element={<PermissionGate permission="administrators.view"><AdministratorsPage /></PermissionGate>} />
