@@ -111,19 +111,30 @@ export function ReputationSettingsPage() {
       return
     }
     setSaving(rule.rule_key)
-    const { error: rpcError } = await supabase.rpc('admin_update_reputation_rule', {
-      p_rule_key: rule.rule_key,
-      p_points: rule.points,
-      p_daily_cap: rule.daily_cap,
-      p_enabled: rule.enabled,
-      p_config: rule.config,
-    })
-    if (rpcError) {
-      setError(rpcError.message)
-      setSaving(null)
-      return
+    const original = rules.find(item => item.rule_key === rule.rule_key)
+    const dimension = String(rule.config.dimension ?? '')
+    const weightChanged = original &&
+      numberConfig(rule, 'dimension_weight', 0) !== numberConfig(original, 'dimension_weight', 0)
+    const toSave = weightChanged && dimension
+      ? Object.values(drafts).filter(item => String(item.config.dimension ?? '') === dimension)
+      : [rule]
+    for (const item of toSave) {
+      const { error: rpcError } = await supabase.rpc('admin_update_reputation_rule', {
+        p_rule_key: item.rule_key,
+        p_points: item.points,
+        p_daily_cap: item.daily_cap,
+        p_enabled: item.enabled,
+        p_config: item.config,
+      })
+      if (rpcError) {
+        setError(rpcError.message)
+        setSaving(null)
+        return
+      }
     }
-    setMessage(`Règle « ${rule.label} » enregistrée.`)
+    setMessage(weightChanged
+      ? `Pondération « ${dimensionLabels[dimension] ?? dimension} » enregistrée pour toutes ses règles.`
+      : `Règle « ${rule.label} » enregistrée.`)
     await load()
     setSaving(null)
   }
