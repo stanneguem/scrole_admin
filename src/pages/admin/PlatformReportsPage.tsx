@@ -7,6 +7,7 @@ import { useAuth } from '../../hooks/useAuth'
 
 type Report = {
   id: string
+  source?: 'signalement' | 'external_profile'
   target_type: string
   target_id: string
   status: string
@@ -66,8 +67,9 @@ export function PlatformReportsPage({ onNavigate }: Props) {
         p_offset: offset,
       })
       if (rpcError) throw rpcError
-      const payload = data as { items?: Report[]; has_more?: boolean } | null
-      setReports(previous => offset > 0 ? [...previous, ...(payload?.items ?? [])] : (payload?.items ?? []))
+      const payload = data as { items?: Report[]; profile_items?: Report[]; has_more?: boolean } | null
+      const merged = [...(payload?.items ?? []), ...(offset === 0 ? (payload?.profile_items ?? []) : [])].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      setReports(previous => offset > 0 ? [...previous, ...merged] : merged)
       setHasMore(payload?.has_more === true)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Impossible de charger les signalements. Vérifiez les droits de votre compte administrateur.')
@@ -122,7 +124,7 @@ export function PlatformReportsPage({ onNavigate }: Props) {
         <div className="table-scroll"><table className="admin-table"><thead><tr><th>Signalement</th><th>Origine</th><th>Cible</th><th>Statut</th><th>Date</th><th>Décision</th></tr></thead><tbody>
           {reports.map(report => <tr key={report.id}>
             <td><strong>{report.reason?.nom ?? 'Motif non précisé'}</strong><small>{report.id}</small>{report.description && <small>{report.description}</small>}</td>
-            <td><strong>{report.from_community ? 'Communauté' : 'Plateforme'}</strong><small>{report.community?.name ?? (report.community_id ? report.community_id : 'Signalement global')}</small>{report.escalated && <small>Escaladé automatiquement · 48 h</small>}</td>
+            <td><strong>{report.from_community ? 'Communauté' : report.source === 'external_profile' ? 'Profil externe' : 'Plateforme'}</strong><small>{report.community?.name ?? (report.community_id ? report.community_id : 'Signalement global')}</small>{report.escalated && <small>Escaladé automatiquement · 48 h</small>}</td>
             <td><strong>{labelType(report.target_type)} · {displayName(report.target?.author ?? report.target)}</strong><small>{report.target?.content ?? report.target_id}</small></td>
             <td><StatusBadge tone={report.status === 'resolu' ? 'success' : report.status === 'rejete' ? 'danger' : 'warning'}>{labelStatus(report.status)}</StatusBadge></td>
             <td>{formatDate(report.created_at)}</td>
@@ -130,7 +132,7 @@ export function PlatformReportsPage({ onNavigate }: Props) {
               {report.status === 'en_attente' || report.status === 'en_cours' ? <>
                 <button type="button" className="table-action" onClick={() => openDecision(report, 'dismiss')}>Rejeter</button>
                 {report.target_type !== 'user' && <button type="button" className="table-action" onClick={() => openDecision(report, 'remove_content')}>Supprimer le contenu</button>}
-                {report.target_type === 'user' && report.escalated && hasPermission('users.suspend') && <button type="button" className="table-action" onClick={() => openDecision(report, 'suspend_user')}>Suspendre le compte</button>}
+                {report.target_type === 'user' && (report.escalated || report.source === 'external_profile') && hasPermission('users.suspend') && <button type="button" className="table-action" onClick={() => openDecision(report, 'suspend_user')}>Suspendre le compte</button>}
               </> : <span>Traité</span>}
               {report.community_id && <button type="button" className="table-action" onClick={() => onNavigate(`/admin/communities/${report.community_id}`)}>Voir communauté</button>}
             </div></td>
@@ -140,7 +142,7 @@ export function PlatformReportsPage({ onNavigate }: Props) {
     </Card>
     {selected && <div className="modal-backdrop" role="presentation"><section className="modal" role="dialog" aria-modal="true" aria-labelledby="report-decision-title">
       <header className="modal-header"><h2 id="report-decision-title">{decision === 'dismiss' ? 'Rejeter le signalement' : decision === 'remove_content' ? 'Supprimer le contenu signalé' : 'Suspendre le compte signalé'}</h2><button type="button" className="icon-button" onClick={() => setSelected(null)} aria-label="Fermer">×</button></header>
-      <div className="modal-body"><p><strong>{selected.reason?.nom ?? 'Signalement'}</strong> · {labelType(selected.target_type)}</p><p>Origine : {selected.community?.name ?? (selected.community_id ?? 'Plateforme')}{selected.escalated ? ' · remonté après 48 heures' : ''}</p><label className="field">Note de modération<textarea value={note} onChange={e => setNote(e.target.value)} rows={4} maxLength={1000} placeholder="Motif de la décision (facultatif)" /></label></div>
+      <div className="modal-body"><p><strong>{selected.reason?.nom ?? 'Signalement'}</strong> · {labelType(selected.target_type)}</p><p>Origine : {selected.community?.name ?? (selected.community_id ?? 'Plateforme')}{selected.escalated ? ' · remonté après 48 heures' : selected.source === 'external_profile' ? ' · signalement de profil externe' : ''}</p><label className="field">Note de modération<textarea value={note} onChange={e => setNote(e.target.value)} rows={4} maxLength={1000} placeholder="Motif de la décision (facultatif)" /></label></div>
       <footer className="modal-footer"><button type="button" className="scrole-button scrole-button-secondary" onClick={() => setSelected(null)}>Annuler</button><button type="button" className="scrole-button scrole-button-danger" disabled={busyId === selected.id} onClick={() => void submitDecision()}>{busyId === selected.id ? 'Enregistrement…' : 'Confirmer la décision'}</button></footer>
     </section></div>}
   </>
