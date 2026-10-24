@@ -6,6 +6,7 @@ import type { AdminRecord, ResourceKey } from '../../types/admin'
 import type { Permission } from '../../types/auth'
 import { DashboardPage } from './DashboardPage'
 import { ResourcePage } from './ResourcePage'
+import { PlatformReportsPage } from './PlatformReportsPage'
 import { SettingsPage } from './SettingsPage'
 import { AdministratorsPage } from './AdministratorsPage'
 import { UsersPage } from './UsersPage'
@@ -41,7 +42,8 @@ function AdminPage() { const location = useLocation(); const navigate = useNavig
   <Route path="users" element={<PermissionGate permission="users.view"><UsersPage onNavigate={navigate} /></PermissionGate>} />
   <Route path="communities" element={<PermissionGate permission="communities.view"><CommunitiesPage onNavigate={navigate} /></PermissionGate>} />
   <Route path="events" element={<PermissionGate permission="events.view"><EventsPage onNavigate={navigate} /></PermissionGate>} />
-  {Object.entries(resourcePaths).filter(([path]) => path !== "communities" && path !== "events" && path !== "system/activity").map(([path, resource]) => <Route key={path} path={path} element={<PermissionGate permission={routePermissions[path]}><ResourcePage resource={resource} onNavigate={navigate} /></PermissionGate>} />)}
+  <Route path="reports" element={<PermissionGate permission="reports.view"><PlatformReportsPage onNavigate={navigate} /></PermissionGate>} />
+  {Object.entries(resourcePaths).filter(([path]) => path !== "reports" && path !== "communities" && path !== "events" && path !== "system/activity").map(([path, resource]) => <Route key={path} path={path} element={<PermissionGate permission={routePermissions[path]}><ResourcePage resource={resource} onNavigate={navigate} /></PermissionGate>} />)}
   <Route path="system/activity" element={<PermissionGate permission="system.view"><ActivityLogPage /></PermissionGate>} />
   <Route path="system/activity/:id" element={<PermissionGate permission="system.view"><ActivityLogPage detailMode /></PermissionGate>} />
   <Route path="users/:id" element={<PermissionGate permission="users.view"><UserInspectorRoute /></PermissionGate>} />
