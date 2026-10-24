@@ -45,6 +45,8 @@ const formatDate = (value: string) => new Intl.DateTimeFormat('fr-FR', { dateSty
 export function PlatformReportsPage({ onNavigate }: Props) {
   const [reports, setReports] = useState<Report[]>([])
   const [status, setStatus] = useState<StatusFilter>('open')
+  const [offset, setOffset] = useState(0)
+  const [hasMore, setHasMore] = useState(false)
   const [loading, setLoading] = useState(true)
   const [busyId, setBusyId] = useState<string | null>(null)
   const [error, setError] = useState('')
@@ -59,17 +61,18 @@ export function PlatformReportsPage({ onNavigate }: Props) {
       const { data, error: rpcError } = await supabase.rpc('get_platform_reports', {
         p_status: status,
         p_limit: 50,
-        p_offset: 0,
+        p_offset: offset,
       })
       if (rpcError) throw rpcError
       const payload = data as { items?: Report[]; has_more?: boolean } | null
-      setReports(payload?.items ?? [])
+      setReports(previous => offset > 0 ? [...previous, ...(payload?.items ?? [])] : (payload?.items ?? []))
+      setHasMore(payload?.has_more === true)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Impossible de charger les signalements. Vérifiez les droits de votre compte administrateur.')
     } finally {
       setLoading(false)
     }
-  }, [status])
+  }, [status, offset])
 
   useEffect(() => { void load() }, [load])
 
@@ -106,7 +109,7 @@ export function PlatformReportsPage({ onNavigate }: Props) {
     </header>
     <Card className="resource-card">
       <div className="resource-toolbar">
-        <label className="search-field"><span aria-hidden="true">▤</span><select value={status} onChange={e => setStatus(e.target.value as StatusFilter)} aria-label="Filtrer les signalements">
+        <label className="search-field"><span aria-hidden="true">▤</span><select value={status} onChange={e => { setStatus(e.target.value as StatusFilter); setOffset(0); setReports([]) }} aria-label="Filtrer les signalements">
           <option value="open">À traiter</option><option value="handled">Traités</option><option value="all">Tous</option>
         </select></label>
         <span className="result-count">{reports.length} signalement{reports.length > 1 ? 's' : ''}</span>
@@ -130,6 +133,7 @@ export function PlatformReportsPage({ onNavigate }: Props) {
             </div></td>
           </tr>)}
         </tbody></table></div>}
+      {!loading && hasMore && <div className="table-footer"><span>Plus de signalements disponibles</span><button type="button" className="scrole-button scrole-button-secondary" onClick={() => setOffset(current => current + 50)}>Charger les suivants</button></div>}
     </Card>
     {selected && <div className="modal-backdrop" role="presentation"><section className="modal" role="dialog" aria-modal="true" aria-labelledby="report-decision-title">
       <header className="modal-header"><h2 id="report-decision-title">{decision === 'dismiss' ? 'Rejeter le signalement' : decision === 'remove_content' ? 'Supprimer le contenu signalé' : 'Suspendre le compte signalé'}</h2><button type="button" className="icon-button" onClick={() => setSelected(null)} aria-label="Fermer">×</button></header>
