@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabase'
 import { Card } from '../../components/ui/Card'
 import { ScroleButton } from '../../components/ui/ScroleButton'
 import { StatusBadge } from '../../components/ui/StatusBadge'
+import { useAuth } from '../../hooks/useAuth'
 
 type Report = {
   id: string
@@ -43,6 +44,7 @@ const displayName = (person?: { username?: string; first_name?: string; last_nam
 const formatDate = (value: string) => new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value))
 
 export function PlatformReportsPage({ onNavigate }: Props) {
+  const { hasPermission } = useAuth()
   const [reports, setReports] = useState<Report[]>([])
   const [status, setStatus] = useState<StatusFilter>('open')
   const [offset, setOffset] = useState(0)
@@ -128,7 +130,7 @@ export function PlatformReportsPage({ onNavigate }: Props) {
               {report.status === 'en_attente' || report.status === 'en_cours' ? <>
                 <button type="button" className="table-action" onClick={() => openDecision(report, 'dismiss')}>Rejeter</button>
                 {report.target_type !== 'user' && <button type="button" className="table-action" onClick={() => openDecision(report, 'remove_content')}>Supprimer le contenu</button>}
-                {report.target_type === 'user' && report.escalated && <button type="button" className="table-action" onClick={() => openDecision(report, 'suspend_user')}>Suspendre le compte</button>}
+                {report.target_type === 'user' && report.escalated && hasPermission('users.suspend') && <button type="button" className="table-action" onClick={() => openDecision(report, 'suspend_user')}>Suspendre le compte</button>}
               </> : <span>Traité</span>}
               {report.community_id && <button type="button" className="table-action" onClick={() => onNavigate(`/admin/communities/${report.community_id}`)}>Voir communauté</button>}
             </div></td>
