@@ -36,7 +36,7 @@ type Props = { onNavigate: (path: string) => void }
 type StatusFilter = 'open' | 'handled' | 'all'
 
 const labelType = (type: string) => ({ post: 'Publication', comment: 'Commentaire', story: 'Story', user: 'Membre' }[type] ?? type)
-const labelStatus = (status: string) => ({ en_attente: 'En attente', en_cours: 'En cours', resolu: 'Résolu', rejete: 'Rejeté' }[status] ?? status)
+const labelStatus = (status: string) => ({ en_attente: 'En attente', en_cours: 'En cours', resolu: 'Résolu', rejete: 'Rejeté', pending: 'En attente', reviewing: 'En cours', resolved: 'Résolu', dismissed: 'Rejeté' }[status] ?? status)
 const displayName = (person?: { username?: string; first_name?: string; last_name?: string } | null) => {
   if (!person) return 'Compte indisponible'
   const name = [person.first_name, person.last_name].filter(Boolean).join(' ').trim()
@@ -129,10 +129,10 @@ export function PlatformReportsPage({ onNavigate }: Props) {
             <td><StatusBadge tone={report.status === 'resolu' ? 'success' : report.status === 'rejete' ? 'danger' : 'warning'}>{labelStatus(report.status)}</StatusBadge></td>
             <td>{formatDate(report.created_at)}</td>
             <td><div className="admin-page-actions">
-              {report.status === 'en_attente' || report.status === 'en_cours' ? <>
-                <button type="button" className="table-action" onClick={() => openDecision(report, 'dismiss')}>Rejeter</button>
-                {report.target_type !== 'user' && <button type="button" className="table-action" onClick={() => openDecision(report, 'remove_content')}>Supprimer le contenu</button>}
-                {report.target_type === 'user' && (report.escalated || report.source === 'external_profile') && hasPermission('users.suspend') && <button type="button" className="table-action" onClick={() => openDecision(report, 'suspend_user')}>Suspendre le compte</button>}
+              {(report.status === 'en_attente' || report.status === 'en_cours') ? <>
+                {hasPermission('reports.reject') && <button type="button" className="table-action" onClick={() => openDecision(report, 'dismiss')}>Rejeter</button>}
+                {report.target_type !== 'user' && hasPermission('reports.resolve') && hasPermission('posts.delete') && <button type="button" className="table-action" onClick={() => openDecision(report, 'remove_content')}>Supprimer le contenu</button>}
+                {report.target_type === 'user' && (report.escalated || report.source === 'external_profile') && hasPermission('users.suspend') && hasPermission('reports.resolve') && <button type="button" className="table-action" onClick={() => openDecision(report, 'suspend_user')}>Suspendre le compte</button>}
               </> : <span>Traité</span>}
               {report.community_id && <button type="button" className="table-action" onClick={() => onNavigate(`/admin/communities/${report.community_id}`)}>Voir communauté</button>}
             </div></td>
