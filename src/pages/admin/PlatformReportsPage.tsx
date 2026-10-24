@@ -94,7 +94,8 @@ export function PlatformReportsPage({ onNavigate }: Props) {
       })
       if (rpcError) throw rpcError
       setSelected(null)
-      await load()
+      setOffset(0)
+      setReports([])
     } catch (e) {
       setError(e instanceof Error ? e.message : 'La décision n’a pas pu être enregistrée.')
     } finally {
