@@ -11,6 +11,7 @@ const navGroups: { label: string; items: AdminNavItem[] }[] = [
   { label: 'Overview', items: [{ label: 'Dashboard', path: '/admin', icon: '⌂' }] },
   { label: 'Modération', items: [
     { label: 'Signalements', path: '/admin/reports', icon: '!', requiredPermission: 'reports.view' },
+    { label: 'Bugs de l’application', path: '/admin/bug-reports', icon: '⚑', requiredPermission: 'reports.view' },
     { label: 'Publications', path: '/admin/posts', icon: '□', requiredPermission: 'posts.view' },
     { label: 'Utilisateurs', path: '/admin/users', icon: '◉', requiredPermission: 'users.view' },
     { label: 'Communautés', path: '/admin/communities', icon: '◎', requiredPermission: 'communities.view' },
