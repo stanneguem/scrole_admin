@@ -28,6 +28,7 @@ const navGroups: { label: string; items: AdminNavItem[] }[] = [
   { label: 'Système', items: [
     { label: 'Activité', path: '/admin/system/activity', icon: '⌁', requiredPermission: 'system.view' },
     { label: 'Paramètres', path: '/admin/settings', icon: '⚙', requiredPermission: 'settings.edit' },
+    { label: 'Version de l’application', path: '/admin/app-version', icon: '⇧', requiredPermission: 'settings.edit' },
   ] },
 ]
 
