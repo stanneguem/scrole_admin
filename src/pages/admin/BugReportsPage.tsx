@@ -13,7 +13,6 @@ type BugReport = {
   metadata: Record<string, unknown> | null
   status: string | null
   screenshot_object_key: string | null
-  admin_note: string | null
   resolved_by: string | null
   created_at: string | null
   updated_at: string | null
@@ -31,20 +30,18 @@ export function BugReportsPage() {
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
   const [busyId, setBusyId] = useState<string | null>(null)
-  const [notes, setNotes] = useState<Record<string, string>>({})
   const [openingId, setOpeningId] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
     setError('')
     try {
-      let query = supabase.from('bug_reports').select('id,user_id,title,description,metadata,status,screenshot_object_key,admin_note,resolved_by,created_at,updated_at').order('created_at', { ascending: false }).limit(200)
+      let query = supabase.from('bug_reports').select('id,user_id,title,description,metadata,status,screenshot_object_key,resolved_by,created_at,updated_at').order('created_at', { ascending: false }).limit(200)
       if (filter !== 'all') query = query.eq('status', filter)
       const { data, error: queryError } = await query
       if (queryError) throw queryError
       const rows = (data ?? []) as BugReport[]
       setItems(rows)
-      setNotes(current => Object.fromEntries(rows.map(row => [row.id, current[row.id] ?? row.admin_note ?? ''])))
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Impossible de charger les signalements de bugs. Vérifiez les permissions administrateur.')
     } finally {
@@ -60,7 +57,6 @@ export function BugReportsPage() {
     try {
       const { error: updateError } = await supabase.from('bug_reports').update({
         status,
-        admin_note: notes[report.id]?.trim() || null,
         resolved_by: status === 'resolved' || status === 'rejected' ? (await supabase.auth.getUser()).data.user?.id ?? null : null,
         updated_at: new Date().toISOString(),
       }).eq('id', report.id)
