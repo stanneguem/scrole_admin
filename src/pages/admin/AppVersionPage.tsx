@@ -54,7 +54,7 @@ export function AppVersionPage() {
         : await supabase.from('app_config').insert(payload).select('id').single()
       if (result.error) throw result.error
       setConfig(old => ({ ...old, ...payload, id: result.data.id, maintenance_message: payload.maintenance_message ?? '', update_message: payload.update_message ?? '', android_store_url: payload.android_store_url ?? '', ios_store_url: payload.ios_store_url ?? '' }))
-      setNotice('Configuration enregistrée. Scrole appliquera la règle au prochain contrôle de version.')
+      setNotice(config.id && config.current_version.trim() !== payload.current_version ? 'Configuration enregistrée. Une notification de nouvelle version est créée pour les utilisateurs actifs.' : 'Configuration enregistrée. Scrole appliquera la règle au prochain contrôle de version.')
     } catch (e) { setError(e instanceof Error ? e.message : 'Impossible d’enregistrer la configuration.') }
     finally { setSaving(false) }
   }
