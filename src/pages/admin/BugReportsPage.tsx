@@ -76,13 +76,21 @@ export function BugReportsPage() {
 
   const openScreenshot = async (report: BugReport) => {
     if (!report.screenshot_object_key || openingId) return
+    const previewWindow = window.open('', '_blank')
+    if (!previewWindow) {
+      setError('Autorisez les fenêtres contextuelles pour consulter la capture.')
+      return
+    }
+    previewWindow.document.title = 'Ouverture de la capture Scrole…'
+    previewWindow.document.body.textContent = 'Préparation du lien privé sécurisé…'
     setOpeningId(report.id); setError('')
     try {
       const { data, error: invokeError } = await supabase.functions.invoke('r2-media-upload', { body: { action: 'create-download-url', object_key: report.screenshot_object_key } })
       if (invokeError) throw invokeError
       if (typeof data?.url !== 'string' || !data.url.startsWith('https://')) throw new Error('R2 n’a pas retourné de lien de consultation valide.')
-      window.open(data.url, '_blank', 'noopener,noreferrer')
+      previewWindow.location.href = data.url
     } catch (e) {
+      previewWindow.close()
       setError(e instanceof Error ? e.message : 'Impossible d’ouvrir la capture privée R2.')
     } finally {
       setOpeningId(null)
