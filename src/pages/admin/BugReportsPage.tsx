@@ -57,14 +57,33 @@ export function BugReportsPage() {
     if (!hasPermission('reports.resolve') || busyId) return
     setBusyId(report.id); setError(''); setMessage('')
     try {
-      const { error: updateError } = await supabase.from('bug_reports').update({
-        status,
-        resolved_by: status === 'resolved' || status === 'rejected' ? (await supabase.auth.getUser()).data.user?.id ?? null : null,
-        updated_at: new Date().toISOString(),
-      }).eq('id', report.id)
-      if (updateError) throw updateError
-      setMessage('Signalement mis à jour.')
-      await load()
+      if (status === 'resolved') {
+        const { data, error: invokeError } = await supabase.functions.invoke('r2-media-upload', {
+          body: { action: 'resolve-delete-bug-report', report_id: report.id },
+        })
+        if (invokeError) throw invokeError
+        if (data?.success !== true || data?.deleted_report_id !== report.id) {
+          const reason = typeof data?.error === 'string' ? data.error : 'delete_not_confirmed'
+          throw new Error(reason === 'bug_report_media_delete_failed'
+            ? 'La capture n’a pas pu être supprimée de Cloudflare R2. Le signalement est conservé.'
+            : reason === 'bug_report_delete_failed'
+              ? 'La capture a été supprimée, mais le signalement reste en base. Réessayez la suppression.'
+              : 'La suppression du signalement n’a pas pu être confirmée.')
+        }
+        setItems(current => current.filter(item => item.id !== report.id))
+        setMessage(data.screenshot_deleted
+          ? 'Signalement et capture R2 supprimés.'
+          : 'Signalement supprimé.')
+      } else {
+        const { error: updateError } = await supabase.from('bug_reports').update({
+          status,
+          resolved_by: status === 'rejected' ? (await supabase.auth.getUser()).data.user?.id ?? null : null,
+          updated_at: new Date().toISOString(),
+        }).eq('id', report.id)
+        if (updateError) throw updateError
+        setMessage('Signalement mis à jour.')
+        await load()
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'La mise à jour a échoué.')
     } finally {
