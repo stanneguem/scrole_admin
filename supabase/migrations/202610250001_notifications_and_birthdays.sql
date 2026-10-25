@@ -1,0 +1,13 @@
+-- Scrole Admin notifications and birthday worker
+-- Review before applying to the remote database.
+-- Schedule the birthday worker using Supabase Cron + Vault secret after deploying the Edge Function.
+-- Example (run only after configuring BIRTHDAY_WORKER_SECRET in Vault):
+-- select cron.schedule('scrole-birthday-notifications', '15 0 * * *', $$
+--   select net.http_post(
+--     url := 'https://YOUR_PROJECT.supabase.co/functions/v1/process-birthdays',
+--     headers := jsonb_build_object('Content-Type','application/json',
+--       'x-birthday-worker-secret',(select decrypted_secret from vault.decrypted_secrets where name='birthday_worker_secret')),
+--     body := '{}'::jsonb, timeout_milliseconds := 120000
+--   );
+-- $$);
+-- No schema mutation is performed by this draft.
