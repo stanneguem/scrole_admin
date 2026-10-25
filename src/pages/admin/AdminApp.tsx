@@ -29,6 +29,7 @@ import { EventDetailPage } from './EventDetailPage'
 import { useAuth } from '../../hooks/useAuth'
 import { PlatformReportsPage } from './PlatformReportsPage'
 import { NotificationsPage } from './NotificationsPage'
+import { BugReportsPage } from './BugReportsPage'
 
 const resourcePaths: Record<string, ResourceKey> = { reports: 'reports', communities: 'communities', posts: 'posts', events: 'events', administrators: 'administrators', 'system/activity': 'activity', 'moderation/actions': 'moderation-actions', 'moderation/hidden': 'hidden-content' }
 const routePermissions: Record<string, Permission> = { reports: 'reports.view', communities: 'communities.view', posts: 'posts.view', events: 'events.view', administrators: 'administrators.view', roles: 'administrators.manage_roles', 'system/activity': 'system.view', 'moderation/actions': 'reports.view', 'moderation/hidden': 'posts.hide', 'certification-pricing': 'settings.edit', settings: 'settings.edit' }
@@ -46,6 +47,7 @@ function AdminPage() { const location = useLocation(); const navigate = useNavig
   <Route path="roles" element={<PermissionGate permission="administrators.manage_roles"><RolesPage /></PermissionGate>} />
   <Route path="administrators" element={<PermissionGate permission="administrators.view"><AdministratorsPage /></PermissionGate>} />
   <Route path="reports" element={<PermissionGate permission="reports.view"><PlatformReportsPage onNavigate={navigate} /></PermissionGate>} />
+  <Route path="bug-reports" element={<PermissionGate permission="reports.view"><BugReportsPage /></PermissionGate>} />
   <Route path="users" element={<PermissionGate permission="users.view"><UsersPage onNavigate={navigate} /></PermissionGate>} />
   <Route path="communities" element={<PermissionGate permission="communities.view"><CommunitiesPage onNavigate={navigate} /></PermissionGate>} />
   <Route path="events" element={<PermissionGate permission="events.view"><EventsPage onNavigate={navigate} /></PermissionGate>} />
