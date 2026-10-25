@@ -26,6 +26,7 @@ import { ActivityLogPage } from './ActivityLogPage'
 import { EventsPage } from './EventsPage'
 import { EventDetailPage } from './EventDetailPage'
 import { useAuth } from '../../hooks/useAuth'
+import { PlatformReportsPage } from './PlatformReportsPage'
 
 const resourcePaths: Record<string, ResourceKey> = { reports: 'reports', communities: 'communities', posts: 'posts', events: 'events', administrators: 'administrators', 'system/activity': 'activity', 'moderation/actions': 'moderation-actions', 'moderation/hidden': 'hidden-content' }
 const routePermissions: Record<string, Permission> = { reports: 'reports.view', communities: 'communities.view', posts: 'posts.view', events: 'events.view', administrators: 'administrators.view', roles: 'administrators.manage_roles', 'system/activity': 'system.view', 'moderation/actions': 'reports.view', 'moderation/hidden': 'posts.hide', 'certification-pricing': 'settings.edit', settings: 'settings.edit' }
@@ -40,10 +41,11 @@ function AdminPage() { const location = useLocation(); const navigate = useNavig
   <Route path="permissions" element={<PermissionGate permission="administrators.manage_roles"><PermissionsPage /></PermissionGate>} />
   <Route path="roles" element={<PermissionGate permission="administrators.manage_roles"><RolesPage /></PermissionGate>} />
   <Route path="administrators" element={<PermissionGate permission="administrators.view"><AdministratorsPage /></PermissionGate>} />
+  <Route path="reports" element={<PermissionGate permission="reports.view"><PlatformReportsPage onNavigate={navigate} /></PermissionGate>} />
   <Route path="users" element={<PermissionGate permission="users.view"><UsersPage onNavigate={navigate} /></PermissionGate>} />
   <Route path="communities" element={<PermissionGate permission="communities.view"><CommunitiesPage onNavigate={navigate} /></PermissionGate>} />
   <Route path="events" element={<PermissionGate permission="events.view"><EventsPage onNavigate={navigate} /></PermissionGate>} />
-  {Object.entries(resourcePaths).filter(([path]) => path !== "communities" && path !== "events" && path !== "system/activity").map(([path, resource]) => <Route key={path} path={path} element={<PermissionGate permission={routePermissions[path]}><ResourcePage resource={resource} onNavigate={navigate} /></PermissionGate>} />)}
+  {Object.entries(resourcePaths).filter(([path]) => path !== "reports" && path !== "communities" && path !== "events" && path !== "system/activity").map(([path, resource]) => <Route key={path} path={path} element={<PermissionGate permission={routePermissions[path]}><ResourcePage resource={resource} onNavigate={navigate} /></PermissionGate>} />)}
   <Route path="system/activity" element={<PermissionGate permission="system.view"><ActivityLogPage /></PermissionGate>} />
   <Route path="system/activity/:id" element={<PermissionGate permission="system.view"><ActivityLogPage detailMode /></PermissionGate>} />
   <Route path="users/:id" element={<PermissionGate permission="users.view"><UserInspectorRoute /></PermissionGate>} />
