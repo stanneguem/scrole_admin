@@ -28,6 +28,7 @@ import { EventsPage } from './EventsPage'
 import { EventDetailPage } from './EventDetailPage'
 import { useAuth } from '../../hooks/useAuth'
 import { PlatformReportsPage } from './PlatformReportsPage'
+import { NotificationsPage } from './NotificationsPage'
 
 const resourcePaths: Record<string, ResourceKey> = { reports: 'reports', communities: 'communities', posts: 'posts', events: 'events', administrators: 'administrators', 'system/activity': 'activity', 'moderation/actions': 'moderation-actions', 'moderation/hidden': 'hidden-content' }
 const routePermissions: Record<string, Permission> = { reports: 'reports.view', communities: 'communities.view', posts: 'posts.view', events: 'events.view', administrators: 'administrators.view', roles: 'administrators.manage_roles', 'system/activity': 'system.view', 'moderation/actions': 'reports.view', 'moderation/hidden': 'posts.hide', 'certification-pricing': 'settings.edit', settings: 'settings.edit' }
@@ -38,6 +39,7 @@ function AdminPage() { const location = useLocation(); const navigate = useNavig
   <Route path="activities/validation" element={<PermissionGate permission="activity.view"><ActivityValidationPage /></PermissionGate>} />
   <Route path="settings" element={<PermissionGate permission="settings.edit"><SettingsPage /></PermissionGate>} />
   <Route path="app-version" element={<PermissionGate permission="settings.edit"><AppVersionPage /></PermissionGate>} />
+  <Route path="notifications" element={<PermissionGate permission="settings.edit"><NotificationsPage /></PermissionGate>} />
   <Route path="certification-pricing" element={<PermissionGate permission="settings.edit"><CertificationPricingPage /></PermissionGate>} />
   <Route path="group-chat-rules" element={<PermissionGate permission="certifications.manage"><GroupChatRulesPage /></PermissionGate>} />
   <Route path="permissions" element={<PermissionGate permission="administrators.manage_roles"><PermissionsPage /></PermissionGate>} />
