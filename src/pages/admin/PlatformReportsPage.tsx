@@ -12,6 +12,7 @@ type Report = {
   target_id: string
   status: string
   created_at: string
+  reports_count?: number
   description: string | null
   escalated: boolean
   from_community: boolean
@@ -109,7 +110,7 @@ export function PlatformReportsPage({ onNavigate }: Props) {
 
   return <>
     <header className="admin-page-header">
-      <div><h1>Signalements</h1><p>File réelle des signalements Scrole, y compris ceux remontés par les communautés après 48 heures sans traitement.</p></div>
+      <div><h1>Signalements</h1><p>File des signalements Scrole, y compris les publications signalées depuis les fils de communautés, avec leur contexte pour la modération.</p></div>
       <div className="admin-page-actions"><ScroleButton variant="secondary" onClick={() => void load()}>Actualiser</ScroleButton></div>
     </header>
     <Card className="resource-card">
@@ -123,7 +124,7 @@ export function PlatformReportsPage({ onNavigate }: Props) {
       {loading ? <div className="table-empty">Chargement des signalements…</div> : reports.length === 0 ? <div className="table-empty">Aucun signalement dans cette file pour le filtre sélectionné.</div> :
         <div className="table-scroll"><table className="admin-table"><thead><tr><th>Signalement</th><th>Origine</th><th>Cible</th><th>Statut</th><th>Date</th><th>Décision</th></tr></thead><tbody>
           {reports.map(report => <tr key={report.id}>
-            <td><strong>{report.reason?.nom ?? 'Motif non précisé'}</strong><small>{report.id}</small>{report.description && <small>{report.description}</small>}</td>
+            <td><strong>{report.reason?.nom ?? 'Motif non précisé'}</strong><small>{report.id}</small>{typeof report.reports_count === 'number' && <small>{report.reports_count} signalement{report.reports_count > 1 ? 's' : ''} ouvert{report.reports_count > 1 ? 's' : ''} sur cette cible</small>}{report.description && <small>{report.description}</small>}</td>
             <td><strong>{report.from_community ? 'Communauté' : report.source === 'external_profile' ? 'Profil externe' : 'Plateforme'}</strong><small>{report.community?.name ?? (report.community_id ? report.community_id : 'Signalement global')}</small>{report.escalated && <small>Escaladé automatiquement · 48 h</small>}</td>
             <td><strong>{labelType(report.target_type)} · {displayName(report.target?.author ?? report.target)}</strong><small>{report.target?.content ?? report.target_id}</small></td>
             <td><StatusBadge tone={report.status === 'resolu' ? 'success' : report.status === 'rejete' ? 'danger' : 'warning'}>{labelStatus(report.status)}</StatusBadge></td>
