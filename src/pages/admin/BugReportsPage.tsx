@@ -13,7 +13,6 @@ type BugReport = {
   metadata: Record<string, unknown> | null
   status: string | null
   screenshot_object_key: string | null
-  screenshot_url?: string | null
   admin_note: string | null
   resolved_by: string | null
   created_at: string | null
@@ -39,7 +38,7 @@ export function BugReportsPage() {
     setLoading(true)
     setError('')
     try {
-      let query = supabase.from('bug_reports').select('id,user_id,title,description,metadata,status,screenshot_object_key,screenshot_url,admin_note,resolved_by,created_at,updated_at').order('created_at', { ascending: false }).limit(200)
+      let query = supabase.from('bug_reports').select('id,user_id,title,description,metadata,status,screenshot_object_key,admin_note,resolved_by,created_at,updated_at').order('created_at', { ascending: false }).limit(200)
       if (filter !== 'all') query = query.eq('status', filter)
       const { data, error: queryError } = await query
       if (queryError) throw queryError
@@ -109,7 +108,7 @@ export function BugReportsPage() {
           <div className="bug-report-heading"><div><h2>{report.title}</h2><small>{report.id} · {dateLabel(report.created_at)} · utilisateur {report.user_id ?? 'non identifié'}</small></div><StatusBadge tone={statusTone(report.status)}>{statusLabel(report.status)}</StatusBadge></div>
           <p className="bug-report-description">{report.description}</p>
           {report.metadata && <details><summary>Informations techniques</summary><pre>{JSON.stringify(report.metadata, null, 2)}</pre></details>}
-          {(report.screenshot_object_key || report.screenshot_url) && <div className="bug-report-media">{report.screenshot_object_key ? <ScroleButton variant="secondary" disabled={openingId === report.id} onClick={() => void openScreenshot(report)}>{openingId === report.id ? 'Préparation du lien…' : 'Ouvrir la capture R2'}</ScroleButton> : <span>Ancienne capture sans clé R2 — URL historique disponible.</span>}</div>}
+          {report.screenshot_object_key && <div className="bug-report-media">{report.screenshot_object_key ? <ScroleButton variant="secondary" disabled={openingId === report.id} onClick={() => void openScreenshot(report)}>{openingId === report.id ? 'Préparation du lien…' : 'Ouvrir la capture R2'}</ScroleButton>}</div>}
           <label className="field bug-report-note">Note interne<textarea rows={2} maxLength={2000} value={notes[report.id] ?? ''} onChange={e => setNotes(current => ({ ...current, [report.id]: e.target.value }))} placeholder="Suivi, diagnostic ou réponse interne…" /></label>
           <div className="bug-report-actions">
             <ScroleButton variant="secondary" disabled={!hasPermission('reports.resolve') || busyId === report.id} onClick={() => void updateReport(report, 'in_progress')}>Prendre en charge</ScroleButton>
