@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Card } from '../../components/ui/Card'
 import { ScroleButton } from '../../components/ui/ScroleButton'
 import { supabase } from '../../lib/supabase'
+import './AppVersionPage.css'
 
 type ConfigRow = {
   id?: number
