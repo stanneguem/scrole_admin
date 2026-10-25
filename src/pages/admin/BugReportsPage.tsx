@@ -4,6 +4,7 @@ import { Card } from '../../components/ui/Card'
 import { ScroleButton } from '../../components/ui/ScroleButton'
 import { StatusBadge } from '../../components/ui/StatusBadge'
 import { useAuth } from '../../hooks/useAuth'
+import './BugReportsPage.css'
 
 type BugReport = {
   id: string
