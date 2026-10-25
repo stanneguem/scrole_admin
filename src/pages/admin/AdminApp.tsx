@@ -21,6 +21,7 @@ import { StatusBadge } from '../../components/ui/StatusBadge'
 import { UserInspectorPage } from './UserInspectorPage'
 import { ContextInspectorPage } from './ContextInspectorPage'
 import { CertificationPricingPage } from './CertificationPricingPage'
+import { AppVersionPage } from './AppVersionPage'
 import { ActivityValidationPage } from './ActivityValidationPage'
 import { ActivityLogPage } from './ActivityLogPage'
 import { EventsPage } from './EventsPage'
@@ -35,6 +36,7 @@ function AdminPage() { const location = useLocation(); const navigate = useNavig
   <Route index element={<DashboardPage />} />
   <Route path="activities/validation" element={<PermissionGate permission="activity.view"><ActivityValidationPage /></PermissionGate>} />
   <Route path="settings" element={<PermissionGate permission="settings.edit"><SettingsPage /></PermissionGate>} />
+  <Route path="app-version" element={<PermissionGate permission="settings.edit"><AppVersionPage /></PermissionGate>} />
   <Route path="certification-pricing" element={<PermissionGate permission="settings.edit"><CertificationPricingPage /></PermissionGate>} />
   <Route path="permissions" element={<PermissionGate permission="administrators.manage_roles"><PermissionsPage /></PermissionGate>} />
   <Route path="roles" element={<PermissionGate permission="administrators.manage_roles"><RolesPage /></PermissionGate>} />
