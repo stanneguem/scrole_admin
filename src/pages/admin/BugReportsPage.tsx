@@ -19,7 +19,8 @@ type BugReport = {
   updated_at: string | null
 }
 type Filter = 'open' | 'in_progress' | 'resolved' | 'rejected' | 'all'
-const statusLabels: Record<string, string> = { open: 'À traiter', in_progress: 'En cours', resolved: 'Résolu', rejected: 'Rejeté' }\nconst statusLabel = (status: string | null) => statusLabels[status ?? 'open'] ?? status ?? 'À traiter'
+const statusLabels: Record<string, string> = { open: 'À traiter', in_progress: 'En cours', resolved: 'Résolu', rejected: 'Rejeté' }
+const statusLabel = (status: string | null) => statusLabels[status ?? 'open'] ?? status ?? 'À traiter'
 const statusTone = (status: string | null): 'success' | 'danger' | 'warning' => status === 'resolved' ? 'success' : status === 'rejected' ? 'danger' : 'warning'
 const dateLabel = (value: string | null) => value ? new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) : '—'
 
