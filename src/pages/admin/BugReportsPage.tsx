@@ -112,8 +112,7 @@ export function BugReportsPage() {
           <div className="bug-report-heading"><div><h2>{report.title}</h2><small>{report.id} · {dateLabel(report.created_at)} · utilisateur {report.user_id ?? 'non identifié'}</small></div><StatusBadge tone={statusTone(report.status)}>{statusLabel(report.status)}</StatusBadge></div>
           <p className="bug-report-description">{report.description}</p>
           {report.metadata && <details><summary>Informations techniques</summary><pre>{JSON.stringify(report.metadata, null, 2)}</pre></details>}
-          {report.screenshot_object_key && <div className="bug-report-media">{report.screenshot_object_key ? <ScroleButton variant="secondary" disabled={openingId === report.id} onClick={() => void openScreenshot(report)}>{openingId === report.id ? 'Préparation du lien…' : 'Ouvrir la capture R2'}</ScroleButton>}</div>}
-          <label className="field bug-report-note">Note interne<textarea rows={2} maxLength={2000} value={notes[report.id] ?? ''} onChange={e => setNotes(current => ({ ...current, [report.id]: e.target.value }))} placeholder="Suivi, diagnostic ou réponse interne…" /></label>
+          {report.screenshot_object_key && <div className="bug-report-media"><ScroleButton variant="secondary" disabled={openingId === report.id} onClick={() => void openScreenshot(report)}>{openingId === report.id ? 'Préparation du lien…' : 'Ouvrir la capture R2'}</ScroleButton></div>}
           <div className="bug-report-actions">
             <ScroleButton variant="secondary" disabled={!hasPermission('reports.resolve') || busyId === report.id} onClick={() => void updateReport(report, 'in_progress')}>Prendre en charge</ScroleButton>
             <ScroleButton disabled={!hasPermission('reports.resolve') || busyId === report.id} onClick={() => void updateReport(report, 'resolved')}>Marquer résolu</ScroleButton>
