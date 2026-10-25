@@ -3,7 +3,8 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 
 const url = Deno.env.get("SUPABASE_URL")!;
 const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? Deno.env.get("SUPABASE_SECRET_KEYS");
+const secretKeysRaw = Deno.env.get("SUPABASE_SECRET_KEYS");
+const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? (secretKeysRaw ? JSON.parse(secretKeysRaw).default : undefined);
 const admin = createClient(url, serviceKey!);
 const json = (value: unknown, status = 200) => new Response(JSON.stringify(value), { status, headers: { "Content-Type": "application/json" } });
 
