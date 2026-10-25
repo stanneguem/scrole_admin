@@ -7,3 +7,7 @@
 .app-version-toggle small { color: var(--color-text-muted); font-size: 12px; font-weight: 400; line-height: 1.5; }
 .app-version-footnote { color: var(--color-text-muted); font-size: 12px; line-height: 1.6; }
 @media (max-width: 760px) { .app-version-form { grid-template-columns: minmax(0, 1fr); padding: 14px; } }
+
+.app-version-field .setting-input { width: 100%; box-sizing: border-box; min-height: 40px; padding: 10px 12px; border: 1px solid var(--color-border); border-radius: 9px; background: var(--color-surface-muted); color: var(--color-text); font: inherit; font-size: 12px; outline: 0; }
+.app-version-field .setting-input:focus { border-color: var(--color-brand); box-shadow: 0 0 0 3px var(--color-brand-soft); }
+.app-version-field textarea.setting-input { resize: vertical; min-height: 90px; }
