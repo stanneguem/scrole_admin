@@ -66,7 +66,7 @@ export function EventDetailPage({ eventId, onNavigate }: { eventId: string; onNa
 
   useEffect(()=>{let active=true;supabase.functions.invoke('admin-event-ownership-info',{body:{eventId}}).then(({data,error})=>{if(!active)return;if(!error&&data?.success)setOwnership(data.ownership??null)});return()=>{active=false}},[eventId,reload])
   useEffect(()=>{let active=true;const q=ownerQuery.trim();if(q.length<2){setOwnerCandidates([]);return}const timer=window.setTimeout(()=>{void supabase.functions.invoke('admin-user-directory',{body:{action:'search',query:q}}).then(({data,error})=>{if(!active)return;setOwnerCandidates(!error&&data?.success?(data.users??[]) as OwnerCandidate[]:[])})},250);return()=>{active=false;window.clearTimeout(timer)}},[ownerQuery])
-  const transferOwnership=async()=>{if(!event||!selectedOwner||!proofNote.trim()||transferBusy)return;setTransferBusy(true);setNotice(null);try{const {data,error}=await supabase.functions.invoke('admin-event-ownership-transfer',{body:{eventId:event.id,userId:selectedOwner.user_id,proofNote:proofNote.trim()}});if(error)throw error;if(!data?.success)throw new Error(data?.message||'Transfert impossible.');setNotice({kind:'success',text:'Propriété transférée au propriétaire vérifié.'});setSelectedOwner(null);setOwnerQuery('');setProofNote('');setReload(v=>v+1)}catch(e){setNotice({kind:'error',text:e instanceof Error?e.message:'Transfert impossible.'})}finally{setTransferBusy(false)}}
+  const transferOwnership=async()=>{if(!event||!selectedOwner||!proofNote.trim()||transferBusy)return;setTransferBusy(true);setNotice(null);try{const {data,error}=await supabase.functions.invoke('admin-event-ownership-transfer',{body:{eventId:event.id,userId:selectedOwner.user_id,proofNote:proofNote.trim()}});if(error)throw error;if(!data?.success)throw new Error(data?.message||'Transfert impossible.');setNotice({kind:'success',text:'Propriété transférée au propriétaire vérifié.'});setSelectedOwner(null);setOwnerQuery('');setProofNote('');setTransferPageOpen(false);setReload(v=>v+1)}catch(e){setNotice({kind:'error',text:e instanceof Error?e.message:'Transfert impossible.'})}finally{setTransferBusy(false)}}
   const place = event ? [event.address, event.city?.nom, event.country?.nom].filter(Boolean).join(', ') : ''
   const creator = event?.creator?.name || event?.creator?.username || 'Organisateur inconnu'
   const canApprove = hasPermission('events.approve')
@@ -84,6 +84,61 @@ export function EventDetailPage({ eventId, onNavigate }: { eventId: string; onNa
     restore: 'L’événement sera réactivé et retiré de la suppression programmée.',
     delete: 'L’événement sera marqué supprimé et ne sera plus public. Cette action est réservée aux rôles disposant de la permission de suppression.',
   } as const
+  if (transferPageOpen && event) {
+    return <>
+      <header className="admin-page-header">
+        <div>
+          <button type="button" className="back-action" onClick={() => setTransferPageOpen(false)}>← Retour aux détails</button>
+          <h1>Transférer la propriété</h1>
+          <p>{event.name || event.slug || 'Événement'} · Sélection du nouveau propriétaire</p>
+        </div>
+      </header>
+      <Card title="Rechercher un membre">
+        <p>Recherchez le compte de la personne qui a prouvé être propriétaire de cet événement. Sélectionnez son profil, ajoutez la référence de la preuve vérifiée, puis confirmez le transfert.</p>
+        <label className="search-field">
+          <span aria-hidden="true">⌕</span>
+          <input
+            autoComplete="off"
+            value={ownerQuery}
+            onChange={e => { setOwnerQuery(e.target.value); setSelectedOwner(null) }}
+            placeholder="Rechercher par nom, prénom ou pseudonyme…"
+            aria-label="Rechercher un membre"
+          />
+        </label>
+        {ownerQuery.trim().length < 2 && !selectedOwner && <div className="table-empty">Saisissez au moins deux caractères pour rechercher un membre.</div>}
+        {ownerQuery.trim().length >= 2 && ownerCandidates.length === 0 && !selectedOwner && <div className="table-empty">Aucun membre trouvé. Essayez un autre nom ou pseudonyme.</div>}
+        {ownerCandidates.length > 0 && <div className="event-owner-results">
+          {ownerCandidates.map(candidate => (
+            <button type="button" key={candidate.user_id} onClick={() => {
+              setSelectedOwner(candidate);
+              setOwnerQuery([candidate.first_name, candidate.last_name].filter(Boolean).join(' ') || (candidate.username ? '@' + candidate.username : candidate.user_id));
+              setOwnerCandidates([]);
+            }}>
+              <strong>{[candidate.first_name, candidate.last_name].filter(Boolean).join(' ') || candidate.username || 'Membre Scrole'}</strong>
+              <small>{candidate.username ? '@' + candidate.username : 'Sans pseudonyme'} · {candidate.user_id}</small>
+            </button>
+          ))}
+        </div>}
+        {selectedOwner && <div className="event-owner-selected">
+          <strong>Membre sélectionné</strong>
+          <div>{[selectedOwner.first_name, selectedOwner.last_name].filter(Boolean).join(' ') || 'Membre Scrole'}</div>
+          <small>{selectedOwner.username ? '@' + selectedOwner.username : selectedOwner.user_id}</small>
+          <button type="button" className="table-action" onClick={() => { setSelectedOwner(null); setOwnerQuery('') }}>Changer de membre</button>
+        </div>}
+        <label className="decision-form">
+          Preuve vérifiée / référence du justificatif
+          <textarea value={proofNote} onChange={e => setProofNote(e.target.value)} rows={4} maxLength={2000} placeholder="Indiquez le justificatif examiné et pourquoi il confirme la propriété de cet événement…" />
+        </label>
+        <div className="admin-page-actions">
+          <button type="button" className="scrole-button scrole-button-secondary" onClick={() => setTransferPageOpen(false)}>Annuler</button>
+          <button type="button" className="scrole-button scrole-button-primary" disabled={!selectedOwner || !proofNote.trim() || transferBusy} onClick={() => void transferOwnership()}>
+            {transferBusy ? 'Transfert en cours…' : 'Valider le transfert de propriété'}
+          </button>
+        </div>
+      </Card>
+    </>;
+  }
+
   const runModeration = async () => {
     if (!event || !action || !reason.trim()) { setNotice({ kind: 'error', text: 'Un motif est obligatoire pour tracer cette décision.' }); return }
     setActionBusy(true); setNotice(null)
@@ -148,13 +203,12 @@ export function EventDetailPage({ eventId, onNavigate }: { eventId: string; onNa
           {ownership?.ownership_note&&<div><span>Note de création</span><strong>{ownership.ownership_note}</strong></div>}
           {ownership?.claimed_owner&&<div><span>Propriétaire actuel</span><strong>{[ownership.claimed_owner.first_name,ownership.claimed_owner.last_name].filter(Boolean).join(' ')||'@'+ownership.claimed_owner.username}</strong></div>}
         </div>
-        {ownership?.ownership_type==='third_party'&&ownership.ownership_status!=='transferred'&&hasPermission('events.transfer_ownership')&&<div className="event-owner-transfer">
-          <h3>Transférer la propriété</h3><p>Après vérification des justificatifs du propriétaire, recherchez son compte puis confirmez le transfert. Son compte deviendra le créateur officiel de l’événement.</p>
-          <label className="search-field"><span>⌕</span><input value={ownerQuery} onChange={e=>{setOwnerQuery(e.target.value);setSelectedOwner(null)}} placeholder="Rechercher par nom ou pseudo du propriétaire"/></label>
-          {ownerCandidates.length>0&&<div className="event-owner-results">{ownerCandidates.map(candidate=><button type="button" key={candidate.user_id} onClick={()=>{setSelectedOwner(candidate);setOwnerQuery('@'+(candidate.username??candidate.user_id));setOwnerCandidates([])}}><strong>{[candidate.first_name,candidate.last_name].filter(Boolean).join(' ')||candidate.username}</strong><small>@{candidate.username??'sans pseudo'} · {candidate.user_id}</small></button>)}</div>}
-          {selectedOwner&&<div className="event-owner-selected">Compte sélectionné : <strong>@{selectedOwner.username??selectedOwner.user_id}</strong></div>}
-          <label className="decision-form">Preuve vérifiée / référence du justificatif<textarea value={proofNote} onChange={e=>setProofNote(e.target.value)} rows={3} placeholder="Décrivez la preuve vérifiée et la décision administrative…"/></label>
-          <button type="button" className="scrole-button scrole-button-primary" disabled={!selectedOwner||!proofNote.trim()||transferBusy} onClick={()=>void transferOwnership()}>{transferBusy?'Transfert…':'Confirmer le transfert de propriété'}</button>
+        {ownership?.ownership_type==='third_party'&&ownership.ownership_status!=='transferred'&&<div className="event-owner-transfer">
+          <h3>Réattribuer la propriété</h3>
+          <p>Cet événement appartient à un tiers. Après vérification de ses justificatifs, vous pouvez sélectionner son compte Scrole et lui transférer officiellement la propriété.</p>
+          <button type="button" className="scrole-button scrole-button-primary" onClick={() => { setOwnerQuery(''); setOwnerCandidates([]); setSelectedOwner(null); setProofNote(''); setTransferPageOpen(true) }}>
+            Rechercher le propriétaire et transférer
+          </button>
         </div>}
         </Card>
         <Card title="Participation"><div className="detail-list">
