@@ -71,7 +71,7 @@ export function EventsPage({ onNavigate }: { onNavigate: (path: string) => void 
   return <>
     <header className="admin-page-header">
       <div><h1>Événements</h1><p>Consultez les événements réels de Scrole et suivez leur participation.</p></div>
-      <div className="admin-page-actions"><button type="button" className="pagination-button" onClick={() => setReload((value) => value + 1)}>↻ Actualiser</button></div>
+      <div className="admin-page-actions"><button type="button" className="pagination-button" onClick={() => setReload((value) => value + 1)}>↻ Actualiser</button><button type="button" className="scrole-button scrole-button-primary" onClick={() => onNavigate('/admin/events/create')}>+ Créer un événement</button></div>
     </header>
     <div className="detail-grid">
       <Card><div className="detail-list"><div><span>Total chargés</span><strong>{events.length}</strong></div></div></Card>
