@@ -97,16 +97,14 @@ export function ReportReviewScreen(props: Props) {
         <article className="report-review-card report-content-card">
           <div className="report-card-heading"><div><span className="report-card-kicker">CONTENU SIGNALÉ</span><h2>{reportTypeLabel[report.target_type] ?? report.target_type}</h2></div><span className="report-card-date">{formatDate(target?.created_at)}</span></div>
           {target?.content && <p className="report-content-text">{target.content}</p>}
+          {target?.post?.content && <div className="report-parent-post"><span className="report-card-kicker">PUBLICATION ASSOCIÉE AU COMMENTAIRE</span><p className="report-content-text">{target.post.content}</p></div>}
           {target?.name && <h3 className="report-target-name">{target.name}</h3>}
           {target?.description && <p className="report-content-text">{target.description}</p>}
           {target?.bio && <p className="report-content-text">{target.bio}</p>}
           {media.length > 0 && <div className={'report-media-grid media-count-' + Math.min(media.length, 4)}>
-            {media.map((item, index) => <button type="button" className="report-media-item" key={item.url} onClick={() => setZoomed(item.url)} aria-label={'Agrandir ' + item.label.toLowerCase() + ' ' + (index + 1)}>
-              {item.type === 'video'
-                ? <><video src={item.url} poster={item.thumbnail} controls preload="metadata" onClick={event => event.stopPropagation()} /><span className="report-media-video-tag">VIDÉO</span></>
-                : <img src={item.url} alt={'Média ' + (index + 1)} loading="lazy" />}
-              {media.length > 1 && <span className="report-media-index">{index + 1}/{media.length}</span>}
-            </button>)}
+            {media.map((item, index) => item.type === 'video'
+              ? <div className="report-media-item" key={item.url}><video src={item.url} poster={item.thumbnail} controls preload="metadata" /><span className="report-media-video-tag">VIDÉO</span>{media.length > 1 && <span className="report-media-index">{index + 1}/{media.length}</span>}</div>
+              : <button type="button" className="report-media-item" key={item.url} onClick={() => setZoomed(item.url)} aria-label={'Agrandir image ' + (index + 1)}><img src={item.url} alt={'Média ' + (index + 1)} loading="lazy" />{media.length > 1 && <span className="report-media-index">{index + 1}/{media.length}</span>}</button>)}
           </div>}
           {target?.shared_post_snapshot && <details className="report-shared-snapshot"><summary>Afficher la publication partagée</summary><pre>{JSON.stringify(target.shared_post_snapshot, null, 2)}</pre></details>}
           {!target && <div className="report-content-unavailable">Le contenu n’est plus disponible. Identifiant : {report.target_id}</div>}
