@@ -36,7 +36,7 @@ type Report = {
 type Props = { onNavigate: (path: string) => void }
 type StatusFilter = 'open' | 'handled' | 'all'
 
-const labelType = (type: string) => ({ post: 'Publication', comment: 'Commentaire', story: 'Story', user: 'Membre' }[type] ?? type)
+const labelType = (type: string) => ({ post: 'Publication', comment: 'Commentaire', story: 'Story', user: 'Profil', profile: 'Profil', community: 'Communauté' }[type] ?? type)
 const labelStatus = (status: string) => ({ en_attente: 'En attente', en_cours: 'En cours', resolu: 'Résolu', rejete: 'Rejeté', pending: 'En attente', reviewing: 'En cours', resolved: 'Résolu', dismissed: 'Rejeté' }[status] ?? status)
 const displayName = (person?: { username?: string; first_name?: string; last_name?: string } | null) => {
   if (!person) return 'Compte indisponible'
@@ -56,7 +56,7 @@ export function PlatformReportsPage({ onNavigate }: Props) {
   const [error, setError] = useState('')
   const [note, setNote] = useState('')
   const [selected, setSelected] = useState<Report | null>(null)
-  const [decision, setDecision] = useState<'dismiss' | 'remove_content' | 'suspend_user'>('dismiss')
+  const [decision, setDecision] = useState<'dismiss' | 'remove_content' | 'shadowban' | 'suspend_user' | 'suspend_community'>('dismiss')
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -126,14 +126,16 @@ export function PlatformReportsPage({ onNavigate }: Props) {
           {reports.map(report => <tr key={report.id}>
             <td><strong>{report.reason?.nom ?? 'Motif non précisé'}</strong><small>{report.id}</small>{typeof report.reports_count === 'number' && <small>{report.reports_count} signalement{report.reports_count > 1 ? 's' : ''} ouvert{report.reports_count > 1 ? 's' : ''} sur cette cible</small>}{report.description && <small>{report.description}</small>}</td>
             <td><strong>{report.from_community ? 'Communauté' : report.source === 'external_profile' ? 'Profil externe' : 'Plateforme'}</strong><small>{report.community?.name ?? (report.community_id ? report.community_id : 'Signalement global')}</small>{report.escalated && <small>Escaladé automatiquement · 48 h</small>}</td>
-            <td><strong>{labelType(report.target_type)} · {displayName(report.target?.author ?? report.target)}</strong><small>{report.target?.content ?? report.target_id}</small></td>
+            <td><strong>{labelType(report.target_type)} · {displayName(report.target?.author ?? report.target)}</strong><small>{report.target?.name ?? report.target?.content ?? report.target_id}</small><button type="button" className="table-action" onClick={() => openDecision(report, 'dismiss')}>Examiner</button></td>
             <td><StatusBadge tone={report.status === 'resolu' ? 'success' : report.status === 'rejete' ? 'danger' : 'warning'}>{labelStatus(report.status)}</StatusBadge></td>
             <td>{formatDate(report.created_at)}</td>
             <td><div className="admin-page-actions">
               {(report.status === 'en_attente' || report.status === 'en_cours') ? <>
                 {hasPermission('reports.reject') && <button type="button" className="table-action" onClick={() => openDecision(report, 'dismiss')}>Rejeter</button>}
-                {report.target_type !== 'user' && hasPermission('reports.resolve') && hasPermission('posts.delete') && <button type="button" className="table-action" onClick={() => openDecision(report, 'remove_content')}>Supprimer le contenu</button>}
-                {report.target_type === 'user' && (report.escalated || report.source === 'external_profile') && hasPermission('users.suspend') && hasPermission('reports.resolve') && <button type="button" className="table-action" onClick={() => openDecision(report, 'suspend_user')}>Suspendre le compte</button>}
+                {['post', 'comment', 'story'].includes(report.target_type) && hasPermission('reports.resolve') && hasPermission('posts.delete') && <button type="button" className="table-action" onClick={() => openDecision(report, 'remove_content')}>Supprimer le contenu</button>}
+                {report.target_type === 'post' && hasPermission('reports.resolve') && hasPermission('posts.hide') && <button type="button" className="table-action" onClick={() => openDecision(report, 'shadowban')}>Shadowban</button>}
+                {['user', 'profile'].includes(report.target_type) && hasPermission('users.suspend') && hasPermission('reports.resolve') && <button type="button" className="table-action" onClick={() => openDecision(report, 'suspend_user')}>Suspendre le compte</button>}
+                {report.target_type === 'community' && hasPermission('communities.suspend') && hasPermission('reports.resolve') && <button type="button" className="table-action" onClick={() => openDecision(report, 'suspend_community')}>Suspendre la communauté</button>}
               </> : <span>Traité</span>}
               {report.community_id && <button type="button" className="table-action" onClick={() => onNavigate(`/admin/communities/${report.community_id}`)}>Voir communauté</button>}
             </div></td>
@@ -142,8 +144,38 @@ export function PlatformReportsPage({ onNavigate }: Props) {
       {!loading && hasMore && <div className="table-footer"><span>Plus de signalements disponibles</span><button type="button" className="scrole-button scrole-button-secondary" onClick={() => setOffset(current => current + 50)}>Charger les suivants</button></div>}
     </Card>
     {selected && <div className="modal-backdrop" role="presentation"><section className="modal" role="dialog" aria-modal="true" aria-labelledby="report-decision-title">
-      <header className="modal-header"><h2 id="report-decision-title">{decision === 'dismiss' ? 'Rejeter le signalement' : decision === 'remove_content' ? 'Supprimer le contenu signalé' : 'Suspendre le compte signalé'}</h2><button type="button" className="icon-button" onClick={() => setSelected(null)} aria-label="Fermer">×</button></header>
-      <div className="modal-body"><p><strong>{selected.reason?.nom ?? 'Signalement'}</strong> · {labelType(selected.target_type)}</p><p>Origine : {selected.community?.name ?? (selected.community_id ?? 'Plateforme')}{selected.escalated ? ' · remonté après 48 heures' : selected.source === 'external_profile' ? ' · signalement de profil externe' : ''}</p><label className="field">Note de modération<textarea value={note} onChange={e => setNote(e.target.value)} rows={4} maxLength={1000} placeholder="Motif de la décision (facultatif)" /></label></div>
+      <header className="modal-header"><h2 id="report-decision-title">{decision === 'dismiss' ? 'Rejeter le signalement' : decision === 'remove_content' ? 'Supprimer le contenu signalé' : decision === 'shadowban' ? 'Shadowban de la publication' : decision === 'suspend_community' ? 'Suspendre la communauté' : 'Suspendre le compte signalé'}</h2><button type="button" className="icon-button" onClick={() => setSelected(null)} aria-label="Fermer">×</button></header>
+      <div className="modal-body">
+        <p><strong>{selected.reason?.nom ?? 'Signalement'}</strong> · {labelType(selected.target_type)}</p>
+        <p>Origine : {selected.community?.name ?? (selected.community_id ?? 'Plateforme')}{selected.escalated ? ' · remonté après 48 heures' : selected.source === 'external_profile' ? ' · signalement de profil externe' : ''}</p>
+        <div className="report-review-preview">
+          <h3>Contenu / cible à examiner</h3>
+          {selected.target?.photo_url && <img src={selected.target.photo_url} alt="Photo du profil ou de l'auteur" style={{width:88,height:88,objectFit:'cover',borderRadius:12}} />}
+          {selected.target?.cover_url && <img src={selected.target.cover_url} alt="Couverture du profil" style={{width:'100%',maxHeight:150,objectFit:'cover',borderRadius:12}} />}
+          {selected.target?.name && <p><strong>{selected.target.name}</strong></p>}
+          {selected.target?.content && <p style={{whiteSpace:'pre-wrap'}}>{selected.target.content}</p>}
+          {selected.target?.bio && <p style={{whiteSpace:'pre-wrap'}}>{selected.target.bio}</p>}
+          {selected.target?.description && <p style={{whiteSpace:'pre-wrap'}}>{selected.target.description}</p>}
+          {selected.target?.reputation_score !== undefined && <p>Réputation : {selected.target.reputation_score}</p>}
+          {selected.target?.account_status && <p>Statut du compte : {selected.target.account_status}</p>}
+          {selected.target?.media?.map((item, index) => item.url && <div key={item.url + index}>{item.type === 'video' ? <a href={item.url} target="_blank" rel="noreferrer">Ouvrir la vidéo {index + 1}</a> : <img src={item.url} alt={'Média ' + (index + 1)} style={{maxWidth:'100%',maxHeight:260,objectFit:'contain',borderRadius:10}} />}</div>)}
+          {selected.target?.photos?.map((url, index) => <img key={url + index} src={url} alt={'Photo ' + (index + 1)} style={{maxWidth:'100%',maxHeight:260,objectFit:'contain',borderRadius:10}} />)}
+          {selected.target?.photo && <img src={selected.target.photo} alt="Publication signalée" style={{maxWidth:'100%',maxHeight:260,objectFit:'contain',borderRadius:10}} />}
+          {selected.target?.image_url && <img src={selected.target.image_url} alt="Story signalée" style={{maxWidth:'100%',maxHeight:260,objectFit:'contain',borderRadius:10}} />}
+          {!selected.target && <p>La cible n'est plus disponible. Identifiant : {selected.target_id}</p>}
+          {selected.description && <p><strong>Précisions du signalant :</strong> {selected.description}</p>}
+        </div>
+        <label className="field">Décision
+          <select value={decision} onChange={e => setDecision(e.target.value as typeof decision)}>
+            <option value="dismiss">Rejeter le signalement</option>
+            {['post','comment','story'].includes(selected.target_type) && hasPermission('posts.delete') && <option value="remove_content">Supprimer le contenu</option>}
+            {selected.target_type === 'post' && hasPermission('posts.hide') && <option value="shadowban">Shadowban la publication</option>}
+            {['user','profile'].includes(selected.target_type) && hasPermission('users.suspend') && <option value="suspend_user">Suspendre le profil</option>}
+            {selected.target_type === 'community' && hasPermission('communities.suspend') && <option value="suspend_community">Suspendre la communauté</option>}
+          </select>
+        </label>
+        <label className="field">Note de modération<textarea value={note} onChange={e => setNote(e.target.value)} rows={4} maxLength={1000} placeholder="Motif de la décision (facultatif)" /></label>
+      </div>
       <footer className="modal-footer"><button type="button" className="scrole-button scrole-button-secondary" onClick={() => setSelected(null)}>Annuler</button><button type="button" className="scrole-button scrole-button-danger" disabled={busyId === selected.id} onClick={() => void submitDecision()}>{busyId === selected.id ? 'Enregistrement…' : 'Confirmer la décision'}</button></footer>
     </section></div>}
   </>
