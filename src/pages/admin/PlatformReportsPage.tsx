@@ -4,8 +4,9 @@ import { Card } from '../../components/ui/Card'
 import { ScroleButton } from '../../components/ui/ScroleButton'
 import { StatusBadge } from '../../components/ui/StatusBadge'
 import { useAuth } from '../../hooks/useAuth'
+import { ReportReviewScreen } from './ReportReviewScreen'
 
-type Report = {
+export type Report = {
   id: string
   source?: 'signalement' | 'external_profile'
   target_type: string
@@ -44,7 +45,13 @@ type Report = {
     reputation_score?: number
     account_status?: string
     media?: { type?: string; url?: string; thumbnail_url?: string }[]
-    author?: { username?: string; first_name?: string; last_name?: string; photo_url?: string }
+    kind?: string
+    created_at?: string
+    video_url?: string
+    video_thumbnail_url?: string
+    shared_post_snapshot?: unknown
+    videos?: ({url?: string; thumbnail_url?: string} | string)[]
+    author?: { user_id?: string; username?: string; first_name?: string; last_name?: string; photo_url?: string }
   } | null
 }
 
@@ -122,6 +129,22 @@ export function PlatformReportsPage({ onNavigate }: Props) {
       setBusyId(null)
     }
   }
+
+  if (selected) return <ReportReviewScreen
+    report={selected}
+    decision={decision}
+    onDecision={setDecision}
+    note={note}
+    onNote={setNote}
+    onBack={() => setSelected(null)}
+    onConfirm={() => void submitDecision()}
+    busy={busyId === selected.id}
+    canDelete={hasPermission('posts.delete')}
+    canShadowban={hasPermission('posts.hide')}
+    canSuspendUser={hasPermission('users.suspend')}
+    canSuspendCommunity={hasPermission('communities.suspend')}
+    onNavigate={onNavigate}
+  />
 
   return <>
     <header className="admin-page-header">
