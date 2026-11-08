@@ -11,7 +11,7 @@ const moderatorPermissions: Permission[] = [
 
 const rolePermissions: Record<Role, Permission[]> = {
   Moderator: moderatorPermissions,
-  Admin: [...moderatorPermissions, 'administrators.view', 'administrators.create', 'administrators.edit', 'administrators.disable'],
+  Admin: [...moderatorPermissions, 'events.create', 'events.transfer_ownership', 'administrators.view', 'administrators.create', 'administrators.edit', 'administrators.disable'],
   'Super Admin': [
     'users.view', 'users.edit', 'users.suspend', 'users.unsuspend', 'users.ban', 'users.unban',
     'communities.view', 'communities.edit', 'communities.suspend', 'communities.unsuspend', 'communities.delete',
