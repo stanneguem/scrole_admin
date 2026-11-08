@@ -74,3 +74,29 @@ textarea.promo-input{min-height:118px;resize:vertical;line-height:1.55}
 .promo-video-range-label{font-size:12px;font-weight:650}.promo-video-range{width:100%;accent-color:var(--accent,#6558d3)}.promo-video-range-ends{display:flex;justify-content:space-between;color:var(--text-muted,#777);font-size:10px;margin-top:-8px}
 .promo-video-trim-button{justify-self:start;padding:11px 16px;border:0;border-radius:10px;background:var(--accent,#6558d3);color:#fff;font-weight:700;font-size:12px;cursor:pointer}.promo-video-trim-button:disabled{opacity:.55;cursor:wait}
 .promo-video-trim-success{font-size:12px;font-weight:700;color:#16834a}
+
+/* Campaign management cards */
+.promo-campaign-list{display:grid;gap:15px;padding:18px 4px 6px}
+.promo-campaign{position:relative;display:grid;grid-template-columns:5px minmax(0,1fr) auto;align-items:stretch;gap:0;overflow:hidden;border:1px solid var(--border,#e5e5ec);border-radius:17px;background:var(--surface,#fff);box-shadow:0 4px 15px rgba(25,25,45,.045);transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+.promo-campaign:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--accent,#6558d3) 32%,var(--border,#e5e5ec));box-shadow:0 9px 24px rgba(25,25,45,.085)}
+.promo-campaign-accent{background:linear-gradient(180deg,var(--accent,#6558d3),color-mix(in srgb,var(--accent,#6558d3) 45%,#fff))}
+.promo-campaign-main{min-width:0;padding:19px 20px;display:grid;gap:15px}
+.promo-campaign-heading{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.promo-campaign-title-wrap{display:flex;align-items:center;gap:12px;min-width:0}
+.promo-campaign-type-icon{display:grid;place-items:center;flex:0 0 43px;width:43px;height:43px;border-radius:13px;background:color-mix(in srgb,var(--accent,#6558d3) 10%,var(--surface,#fff));color:var(--accent,#6558d3);font-size:19px}
+.promo-campaign-title-text{display:grid;gap:5px;min-width:0}
+.promo-campaign-title-text strong{font-size:15px;line-height:1.35;color:var(--text-primary,#252532);overflow-wrap:anywhere}
+.promo-campaign-title-text small{font-size:11px;color:var(--text-muted,#777)}
+.promo-campaign-meta{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.promo-campaign-meta-item{display:grid;gap:5px;padding:11px 12px;border:1px solid var(--border,#ececf1);border-radius:11px;background:color-mix(in srgb,var(--surface,#fff) 94%,var(--text-primary,#222) 6%);min-width:0}
+.promo-campaign-meta-item span,.promo-campaign-stat>span,.promo-campaign-targeting>span{font-size:10px;color:var(--text-muted,#777)}
+.promo-campaign-meta-item strong{font-size:11px;color:var(--text-primary,#30303a);overflow-wrap:anywhere}
+.promo-campaign-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.promo-campaign-stat,.promo-campaign-targeting{display:grid;align-content:start;gap:5px;padding:11px 12px;border-radius:11px;background:color-mix(in srgb,var(--surface,#fff) 96%,var(--accent,#6558d3) 4%);min-width:0}
+.promo-campaign-stat strong,.promo-campaign-targeting strong{font-size:14px;color:var(--text-primary,#30303a);overflow-wrap:anywhere}
+.promo-campaign-stat small{font-size:10px;color:var(--text-muted,#777)}
+.promo-campaign-targeting strong{font-size:11px;line-height:1.5}
+.promo-campaign-actions{display:flex;flex-direction:column;justify-content:center;align-items:stretch;gap:8px;padding:16px;border-left:1px solid var(--border,#ededf1);background:color-mix(in srgb,var(--surface,#fff) 97%,var(--text-primary,#222) 3%);min-width:132px}
+.promo-campaign-actions .promo-toggle{white-space:nowrap}
+@media(max-width:760px){.promo-campaign{grid-template-columns:4px minmax(0,1fr)}.promo-campaign-actions{grid-column:2;flex-direction:row;flex-wrap:wrap;border-left:0;border-top:1px solid var(--border,#ededf1);padding:12px 16px}.promo-campaign-main{padding:15px}.promo-campaign-meta,.promo-campaign-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.promo-campaign-heading{align-items:flex-start}}
+@media(max-width:440px){.promo-campaign-meta,.promo-campaign-stats{grid-template-columns:1fr 1fr}.promo-campaign-heading{flex-direction:column}.promo-campaign-actions .promo-toggle{flex:1}}
