@@ -108,9 +108,11 @@ Deno.serve(async (req: Request) => {
       return {
         ...event,
         creator: adminCreator ? {
-          user_id: adminCreator.auth_id,
+          user_id: null,
+          profile_id: adminCreator.id,
+          profile_type: "admin",
           username: null,
-          name: creatorName || "Administrateur Scrole",
+          name: "Scrole",
           photo_url: adminCreator.photo_url || creator?.photo_url || null,
           is_admin_creator: true,
           admin_role: adminCreator.role,
