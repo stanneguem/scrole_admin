@@ -52,8 +52,11 @@ function collectMedia(target: NonNullable<Report['target']>): MediaItem[] {
 
   const seen = new Set<string>()
   return candidates.filter(item => {
-    if (seen.has(item.url)) return false
-    seen.add(item.url)
+    // Media can be repeated in photo, photos and media with distinct signed
+    // query strings. Compare the stable storage path, not the signed URL.
+    const identity = item.url.split(/[?#]/, 1)[0]
+    if (seen.has(identity)) return false
+    seen.add(identity)
     return true
   })
 }
