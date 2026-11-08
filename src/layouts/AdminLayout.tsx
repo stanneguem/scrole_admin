@@ -10,6 +10,7 @@ import '../pages/admin/AdminPolish.css'
 const navGroups: { label: string; items: AdminNavItem[] }[] = [
   { label: 'Overview', items: [{ label: 'Dashboard', path: '/admin', icon: '⌂' }] },
   { label: 'Modération', items: [
+    { label: 'Promotion / Publicité', path: '/admin/promotions', icon: '↗', requiredPermission: 'settings.edit' },
     { label: 'Signalements', path: '/admin/reports', icon: '!', requiredPermission: 'reports.view' },
     { label: 'Bugs de l’application', path: '/admin/bug-reports', icon: '⚑', requiredPermission: 'reports.view' },
     { label: 'Publications', path: '/admin/posts', icon: '□', requiredPermission: 'posts.view' },
