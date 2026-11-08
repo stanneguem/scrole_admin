@@ -49,6 +49,7 @@ export type Report = {
     created_at?: string
     video_url?: string
     video_thumbnail_url?: string
+    post?: { id?: string; content?: string; community_id?: string }
     shared_post_snapshot?: unknown
     videos?: ({url?: string; thumbnail_url?: string} | string)[]
     author?: { user_id?: string; username?: string; first_name?: string; last_name?: string; photo_url?: string }
