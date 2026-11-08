@@ -37,7 +37,7 @@ export type Report = {
     cover_url?: string
     photo_profile?: string
     photo_cover?: string
-    creator?: { username?: string; first_name?: string; last_name?: string; photo_url?: string }
+    creator?: { user_id?: string; username?: string; first_name?: string; last_name?: string; photo_url?: string }
     photo?: string
     photos?: string[]
     image_url?: string
