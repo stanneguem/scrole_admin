@@ -16,6 +16,8 @@ type EventDetail = {
   creator?: { user_id?: string; username?: string | null; name?: string | null; photo_url?: string | null } | null
   participant_count?: number; checked_in_count?: number
 }
+type OwnerInfo = { ownership_type: 'platform'|'third_party'; ownership_status: string; ownership_note?: string|null; claimed_owner?: {user_id:string;username?:string|null;first_name?:string|null;last_name?:string|null}|null }
+type OwnerCandidate = { user_id:string; username?:string|null; first_name?:string|null; last_name?:string|null; photo_url?:string|null }
 type ResponsePayload = { success?: boolean; events?: EventDetail[]; message?: string }
 
 const dateTime = (value: string | null | undefined) => value ? new Date(value).toLocaleString('fr-FR', { dateStyle: 'full', timeStyle: 'short' }) : 'Non précisée'
@@ -38,6 +40,9 @@ export function EventDetailPage({ eventId, onNavigate }: { eventId: string; onNa
   const [reason, setReason] = useState('')
   const [actionBusy, setActionBusy] = useState(false)
   const [notice, setNotice] = useState<{ kind: 'success' | 'error'; text: string } | null>(null)
+  const [ownership,setOwnership]=useState<OwnerInfo|null>(null)
+  const [ownerQuery,setOwnerQuery]=useState(''); const [ownerCandidates,setOwnerCandidates]=useState<OwnerCandidate[]>([])
+  const [selectedOwner,setSelectedOwner]=useState<OwnerCandidate|null>(null); const [proofNote,setProofNote]=useState(''); const [transferBusy,setTransferBusy]=useState(false)
   const { hasPermission } = useAuth()
 
   useEffect(() => {
@@ -59,6 +64,9 @@ export function EventDetailPage({ eventId, onNavigate }: { eventId: string; onNa
     return () => { active = false }
   }, [eventId, reload])
 
+  useEffect(()=>{let active=true;supabase.functions.invoke('admin-event-ownership-info',{body:{eventId}}).then(({data,error})=>{if(!active)return;if(!error&&data?.success)setOwnership(data.ownership??null)});return()=>{active=false}},[eventId,reload])
+  useEffect(()=>{let active=true;const q=ownerQuery.trim();if(q.length<2){setOwnerCandidates([]);return}const timer=window.setTimeout(()=>{void supabase.functions.invoke('admin-user-directory',{body:{action:'search',query:q}}).then(({data,error})=>{if(!active)return;setOwnerCandidates(!error&&data?.success?(data.users??[]) as OwnerCandidate[]:[])})},250);return()=>{active=false;window.clearTimeout(timer)}},[ownerQuery])
+  const transferOwnership=async()=>{if(!event||!selectedOwner||!proofNote.trim()||transferBusy)return;setTransferBusy(true);setNotice(null);try{const {data,error}=await supabase.functions.invoke('admin-event-ownership-transfer',{body:{eventId:event.id,userId:selectedOwner.user_id,proofNote:proofNote.trim()}});if(error)throw error;if(!data?.success)throw new Error(data?.message||'Transfert impossible.');setNotice({kind:'success',text:'Propriété transférée au propriétaire vérifié.'});setSelectedOwner(null);setOwnerQuery('');setProofNote('');setReload(v=>v+1)}catch(e){setNotice({kind:'error',text:e instanceof Error?e.message:'Transfert impossible.'})}finally{setTransferBusy(false)}}
   const place = event ? [event.address, event.city?.nom, event.country?.nom].filter(Boolean).join(', ') : ''
   const creator = event?.creator?.name || event?.creator?.username || 'Organisateur inconnu'
   const canApprove = hasPermission('events.approve')
@@ -133,6 +141,21 @@ export function EventDetailPage({ eventId, onNavigate }: { eventId: string; onNa
           <div><span>ID utilisateur</span><strong>{event.creator?.user_id || event.creator_id || 'Non renseigné'}</strong></div>
           <div><span>Communauté</span><strong>{event.community?.name || 'Aucune communauté liée'}</strong></div>
         </div></Card>
+        <Card title="Propriété de l’événement"><div className="detail-list">
+          <div><span>Origine</span><strong>{ownership?.ownership_type==='third_party'?'Événement d’un tiers':'Événement Scrole'}</strong></div>
+          <div><span>État de propriété</span><strong>{ownership?.ownership_status==='transferred'?'Propriété transférée':ownership?.ownership_status==='awaiting_proof'?'En attente de preuve':'Propriété Scrole'}</strong></div>
+          {ownership?.ownership_note&&<div><span>Note de création</span><strong>{ownership.ownership_note}</strong></div>}
+          {ownership?.claimed_owner&&<div><span>Propriétaire actuel</span><strong>{[ownership.claimed_owner.first_name,ownership.claimed_owner.last_name].filter(Boolean).join(' ')||'@'+ownership.claimed_owner.username}</strong></div>}
+        </div>
+        {ownership?.ownership_type==='third_party'&&ownership.ownership_status!=='transferred'&&hasPermission('events.transfer_ownership')&&<div className="event-owner-transfer">
+          <h3>Transférer la propriété</h3><p>Après vérification des justificatifs du propriétaire, recherchez son compte puis confirmez le transfert. Son compte deviendra le créateur officiel de l’événement.</p>
+          <label className="search-field"><span>⌕</span><input value={ownerQuery} onChange={e=>{setOwnerQuery(e.target.value);setSelectedOwner(null)}} placeholder="Rechercher par nom ou pseudo du propriétaire"/></label>
+          {ownerCandidates.length>0&&<div className="event-owner-results">{ownerCandidates.map(candidate=><button type="button" key={candidate.user_id} onClick={()=>{setSelectedOwner(candidate);setOwnerQuery('@'+(candidate.username??candidate.user_id));setOwnerCandidates([])}}><strong>{[candidate.first_name,candidate.last_name].filter(Boolean).join(' ')||candidate.username}</strong><small>@{candidate.username??'sans pseudo'} · {candidate.user_id}</small></button>)}</div>}
+          {selectedOwner&&<div className="event-owner-selected">Compte sélectionné : <strong>@{selectedOwner.username??selectedOwner.user_id}</strong></div>}
+          <label className="decision-form">Preuve vérifiée / référence du justificatif<textarea value={proofNote} onChange={e=>setProofNote(e.target.value)} rows={3} placeholder="Décrivez la preuve vérifiée et la décision administrative…"/></label>
+          <button type="button" className="scrole-button scrole-button-primary" disabled={!selectedOwner||!proofNote.trim()||transferBusy} onClick={()=>void transferOwnership()}>{transferBusy?'Transfert…':'Confirmer le transfert de propriété'}</button>
+        </div>}
+        </Card>
         <Card title="Participation"><div className="detail-list">
           <div><span>Participants inscrits</span><strong>{event.participant_count ?? 0}</strong></div>
           <div><span>Présences validées</span><strong>{event.checked_in_count ?? 0}</strong></div>
