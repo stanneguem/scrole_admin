@@ -36,7 +36,7 @@ export function EventCreatePage({ onNavigate }: { onNavigate: (path: string) => 
   const visibleCities=cities.filter(city=>city.country_id===countryId)
   const updateActivity=(index:number,key:keyof ActivityDraft,value:string)=>setActivities(rows=>rows.map((row,i)=>i===index?{...row,[key]:value}:row))
   const updateTicket=(index:number,key:keyof TicketDraft,value:string)=>setTickets(rows=>rows.map((row,i)=>i===index?{...row,[key]:value}:row))
-  const addOpenDay=()=>{const value=window.prompt('Date d’ouverture (AAAA-MM-JJ)'); if(value && /^\\d{4}-\\d{2}-\\d{2}$/.test(value) && !openDays.includes(value))setOpenDays(rows=>[...rows,value].sort())}
+  const addOpenDay=()=>{const value=window.prompt('Date d’ouverture (AAAA-MM-JJ)'); if(value && /^\d{4}-\d{2}-\d{2}$/.test(value) && !openDays.includes(value))setOpenDays(rows=>[...rows,value].sort())}
 
   const submit=async(event:React.FormEvent)=>{event.preventDefault();setError('');setSuccess('')
     if(!name.trim()||!startsAt){setError('Le nom et la date de début sont obligatoires.');return}
