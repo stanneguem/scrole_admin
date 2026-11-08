@@ -21,7 +21,6 @@ type OwnerCandidate = { user_id:string; username?:string|null; first_name?:strin
 type ResponsePayload = { success?: boolean; events?: EventDetail[]; message?: string }
 
 const dateTime = (value: string | null | undefined) => value ? new Date(value).toLocaleString('fr-FR', { dateStyle: 'full', timeStyle: 'short' }) : 'Non précisée'
-const dateOnly = (value: string | null | undefined) => value ? new Date(value).toLocaleDateString('fr-FR', { dateStyle: 'medium' }) : 'Non précisée'
 const tone = (value: string | null | undefined): 'neutral' | 'success' | 'warning' | 'danger' | 'info' => {
   const status = (value ?? '').toLowerCase()
   if (['active', 'published', 'actif', 'approved'].includes(status)) return 'success'
@@ -43,6 +42,7 @@ export function EventDetailPage({ eventId, onNavigate }: { eventId: string; onNa
   const [ownership,setOwnership]=useState<OwnerInfo|null>(null)
   const [ownerQuery,setOwnerQuery]=useState(''); const [ownerCandidates,setOwnerCandidates]=useState<OwnerCandidate[]>([])
   const [selectedOwner,setSelectedOwner]=useState<OwnerCandidate|null>(null); const [proofNote,setProofNote]=useState(''); const [transferBusy,setTransferBusy]=useState(false)
+  const [transferPageOpen,setTransferPageOpen]=useState(false)
   const { hasPermission } = useAuth()
 
   useEffect(() => {
