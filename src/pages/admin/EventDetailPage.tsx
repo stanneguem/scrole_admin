@@ -13,7 +13,7 @@ type EventDetail = {
   updated_at: string | null; real_created_at: string | null; share_count: number | null
   city?: { nom?: string | null } | null; country?: { nom?: string | null; code_iso?: string | null } | null
   community?: { id?: string; name?: string | null } | null
-  creator?: { user_id?: string; username?: string | null; name?: string | null; photo_url?: string | null } | null
+  creator?: { user_id?: string; username?: string | null; name?: string | null; photo_url?: string | null; is_admin_creator?: boolean; admin_role?: string | null } | null
   participant_count?: number; checked_in_count?: number
 }
 type OwnerInfo = { ownership_type: 'platform'|'third_party'; ownership_status: string; ownership_note?: string|null; claimed_owner?: {user_id:string;username?:string|null;first_name?:string|null;last_name?:string|null}|null }
@@ -137,7 +137,8 @@ export function EventDetailPage({ eventId, onNavigate }: { eventId: string; onNa
         </div></Card>
         <Card title="Organisateur"><div className="detail-list">
           <div><span>Nom</span><strong>{creator}</strong></div>
-          <div><span>Nom d’utilisateur</span><strong>{event.creator?.username ? '@' + event.creator.username : 'Non renseigné'}</strong></div>
+          <div><span>{event.creator?.is_admin_creator ? 'Compte' : 'Nom d’utilisateur'}</span><strong>{event.creator?.is_admin_creator ? 'Administrateur Scrole' : event.creator?.username ? '@' + event.creator.username : 'Non renseigné'}</strong></div>
+          {event.creator?.is_admin_creator && <div><span>Rôle administratif</span><strong>{event.creator.admin_role === 'super_admin' ? 'Super administrateur' : 'Administrateur'}</strong></div>}
           <div><span>ID utilisateur</span><strong>{event.creator?.user_id || event.creator_id || 'Non renseigné'}</strong></div>
           <div><span>Communauté</span><strong>{event.community?.name || 'Aucune communauté liée'}</strong></div>
         </div></Card>
