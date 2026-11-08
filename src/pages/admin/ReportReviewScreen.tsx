@@ -2,10 +2,11 @@ import { useMemo, useState } from 'react'
 import type { Report } from './PlatformReportsPage'
 import './ReportReviewScreen.css'
 
+type Decision = 'dismiss' | 'remove_content' | 'shadowban' | 'suspend_user' | 'suspend_community'
 type Props = {
   report: Report
   decision: string
-  onDecision: (value: 'dismiss' | 'remove_content' | 'shadowban' | 'suspend_user' | 'suspend_community') => void
+  onDecision: (value: Decision) => void
   note: string
   onNote: (value: string) => void
   onBack: () => void
@@ -68,7 +69,7 @@ export function ReportReviewScreen(props: Props) {
   const target = report.target
   const media = useMemo(() => target ? collectMedia(target) : [], [target])
   const author = target?.author ?? target?.creator ?? target
-  const authorId = author && 'user_id' in author ? author.user_id : undefined
+  const authorId = author && 'user_id' in author ? author.user_id : target?.user_id
   const isContent = ['post', 'comment', 'story'].includes(report.target_type)
 
   return <main className="report-review-page">
@@ -139,7 +140,7 @@ export function ReportReviewScreen(props: Props) {
           <span className="report-card-kicker">DÉCISION DE MODÉRATION</span>
           <h2>Quelle action entreprendre ?</h2>
           <label className="report-field-label">Action
-            <select value={props.decision} onChange={event => props.onDecision(event.target.value as Props['decision'] extends (value: infer T) => void ? T : never)}>
+            <select value={props.decision} onChange={event => props.onDecision(event.target.value as Decision)}>
               <option value="dismiss">Rejeter le signalement</option>
               {isContent && props.canDelete && <option value="remove_content">Supprimer le contenu</option>}
               {report.target_type === 'post' && props.canShadowban && <option value="shadowban">Shadowban la publication</option>}
