@@ -30,7 +30,7 @@ Deno.serve(async (req: Request) => {
     if (permissionError) throw permissionError;
     if (!permission?.enabled) return json({ success: false, message: "Permission de transfert requise." }, 403);
     const body = await req.json();
-    const q = String(body.query ?? "").trim().replace(/[,%_()]/g, " ").replace(/\\s+/g, " ");
+    const q = String(body.query ?? "").trim().replace(/[,%_()]/g, " ").replace(/\s+/g, " ");
     // À l’ouverture, proposer directement quelques comptes actifs. La recherche filtre ensuite l’ensemble des membres.
     const initialLoad = q.length < 2;
     const { data: users, error } = await service.from("user_profiles")
