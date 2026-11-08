@@ -98,7 +98,16 @@ export function ReportReviewScreen(props: Props) {
           <div className="report-card-heading"><div><span className="report-card-kicker">CONTENU SIGNALÉ</span><h2>{reportTypeLabel[report.target_type] ?? report.target_type}</h2></div><span className="report-card-date">{formatDate(target?.created_at)}</span></div>
           {target?.content && <p className="report-content-text">{target.content}</p>}
           {target?.post?.content && <div className="report-parent-post"><span className="report-card-kicker">PUBLICATION ASSOCIÉE AU COMMENTAIRE</span><p className="report-content-text">{target.post.content}</p></div>}
-          {target?.name && <h3 className="report-target-name">{target.name}</h3>}
+          {['user', 'profile', 'community'].includes(report.target_type) && <div className="report-subject-identity">
+            {(target?.cover_url ?? target?.photo_cover) && <img className="report-subject-cover" src={(target?.cover_url ?? target?.photo_cover)!} alt="Couverture" />}
+            <div className="report-subject-identity-row">
+              {(target?.photo_url ?? target?.photo_profile) && <img className="report-subject-avatar" src={(target?.photo_url ?? target?.photo_profile)!} alt="" />}
+              <div><h3>{target?.name ?? personName(target)}</h3>{target?.username && <span>@{target.username}</span>}</div>
+            </div>
+            {target?.reputation_score !== undefined && <p className="report-subject-reputation">Réputation : <strong>{target.reputation_score}</strong></p>}
+            {target?.account_status && <p className="report-subject-reputation">Statut du compte : <strong>{target.account_status}</strong></p>}
+          </div>}
+          {target?.name && !['user', 'profile', 'community'].includes(report.target_type) && <h3 className="report-target-name">{target.name}</h3>}
           {target?.description && <p className="report-content-text">{target.description}</p>}
           {target?.bio && <p className="report-content-text">{target.bio}</p>}
           {media.length > 0 && <div className={'report-media-grid media-count-' + Math.min(media.length, 4)}>
