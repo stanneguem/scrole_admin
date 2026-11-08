@@ -7,7 +7,7 @@ Deno.serve(async (req: Request) => {
   if (req.method !== "POST") return json({ success: false, message: "Méthode non autorisée." }, 405);
   try {
     const service = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-    const token = req.headers.get("Authorization")?.replace(/^Bearer\s+/i, "");
+    const token = req.headers.get("Authorization")?.replace(/^Bearer\\s+/i, "");
     if (!token) return json({ success: false, message: "Authentification requise." }, 401);
     const { data: authData, error: authError } = await service.auth.getUser(token);
     if (authError || !authData.user) return json({ success: false, message: "Session invalide." }, 401);
@@ -19,7 +19,7 @@ Deno.serve(async (req: Request) => {
     if (!permission?.enabled) return json({ success: false, message: "Permission events.create requise." }, 403);
     const body = await req.json();
     const { data: eventId, error } = await service.rpc("admin_create_event_from_console", {
-      p_creator_id: authData.user.id, p_admin_profile_id: admin.id, p_event: body.event ?? {},
+      p_creator_id: null, p_admin_profile_id: admin.id, p_event: body.event ?? {},
       p_activities: body.activities ?? [], p_tickets: body.tickets ?? [], p_restrictions: body.restrictions ?? {},
       p_open_days: body.openDays ?? [], p_ownership_type: body.ownershipType ?? "platform", p_ownership_note: body.ownershipNote ?? null,
     });
