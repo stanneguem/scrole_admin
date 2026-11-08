@@ -40,6 +40,8 @@ export function EventDetailPage({ eventId, onNavigate }: { eventId: string; onNa
   const [actionBusy, setActionBusy] = useState(false)
   const [notice, setNotice] = useState<{ kind: 'success' | 'error'; text: string } | null>(null)
   const [ownership,setOwnership]=useState<OwnerInfo|null>(null)
+  const [ownershipLoading,setOwnershipLoading]=useState(true)
+  const [ownershipError,setOwnershipError]=useState('')
   const [ownerQuery,setOwnerQuery]=useState(''); const [ownerCandidates,setOwnerCandidates]=useState<OwnerCandidate[]>([])
   const [selectedOwner,setSelectedOwner]=useState<OwnerCandidate|null>(null); const [proofNote,setProofNote]=useState(''); const [transferBusy,setTransferBusy]=useState(false)
   const [transferPageOpen,setTransferPageOpen]=useState(false)
@@ -64,7 +66,23 @@ export function EventDetailPage({ eventId, onNavigate }: { eventId: string; onNa
     return () => { active = false }
   }, [eventId, reload])
 
-  useEffect(()=>{let active=true;supabase.functions.invoke('admin-event-ownership-info',{body:{eventId}}).then(({data,error})=>{if(!active)return;if(!error&&data?.success)setOwnership(data.ownership??null)});return()=>{active=false}},[eventId,reload])
+  useEffect(() => {
+    let active = true
+    setOwnership(null)
+    setOwnershipLoading(true)
+    setOwnershipError('')
+    supabase.functions.invoke('admin-event-ownership-info', { body: { eventId } })
+      .then(({ data, error: invokeError }) => {
+        if (invokeError) throw invokeError
+        if (!data?.success) throw new Error(data?.message || 'Impossible de charger les informations de propriété.')
+        if (active) setOwnership(data.ownership ?? null)
+      })
+      .catch((reason: unknown) => {
+        if (active) setOwnershipError(reason instanceof Error ? reason.message : 'Erreur de chargement de la propriété.')
+      })
+      .finally(() => { if (active) setOwnershipLoading(false) })
+    return () => { active = false }
+  }, [eventId, reload])
   useEffect(()=>{let active=true;const q=ownerQuery.trim();if(q.length<2){setOwnerCandidates([]);return}const timer=window.setTimeout(()=>{void supabase.functions.invoke('admin-event-owner-search',{body:{query:q}}).then(({data,error})=>{if(!active)return;setOwnerCandidates(!error&&data?.success?(data.users??[]) as OwnerCandidate[]:[])})},250);return()=>{active=false;window.clearTimeout(timer)}},[ownerQuery])
   const transferOwnership=async()=>{if(!event||!selectedOwner||!proofNote.trim()||transferBusy)return;setTransferBusy(true);setNotice(null);try{const {data,error}=await supabase.functions.invoke('admin-event-ownership-transfer',{body:{eventId:event.id,userId:selectedOwner.user_id,proofNote:proofNote.trim()}});if(error)throw error;if(!data?.success)throw new Error(data?.message||'Transfert impossible.');setNotice({kind:'success',text:'Propriété transférée au propriétaire vérifié.'});setSelectedOwner(null);setOwnerQuery('');setProofNote('');setTransferPageOpen(false);setReload(v=>v+1)}catch(e){setNotice({kind:'error',text:e instanceof Error?e.message:'Transfert impossible.'})}finally{setTransferBusy(false)}}
   const place = event ? [event.address, event.city?.nom, event.country?.nom].filter(Boolean).join(', ') : ''
@@ -198,11 +216,12 @@ export function EventDetailPage({ eventId, onNavigate }: { eventId: string; onNa
           <div><span>Communauté</span><strong>{event.community?.name || 'Aucune communauté liée'}</strong></div>
         </div></Card>
         <Card title="Propriété de l’événement"><div className="detail-list">
-          <div><span>Origine</span><strong>{ownership?.ownership_type==='third_party'?'Événement d’un tiers':'Événement Scrole'}</strong></div>
-          <div><span>État de propriété</span><strong>{ownership?.ownership_status==='transferred'?'Propriété transférée':ownership?.ownership_status==='awaiting_proof'?'En attente de preuve':'Propriété Scrole'}</strong></div>
+          <div><span>Origine</span><strong>{ownershipLoading?'Chargement…':ownershipError?'Indisponible':ownership?.ownership_type==='third_party'?'Événement d’un tiers':ownership?.ownership_type==='platform'?'Événement Scrole':'Non renseignée'}</strong></div>
+          <div><span>État de propriété</span><strong>{ownershipLoading?'Chargement…':ownershipError?'Indisponible':ownership?.ownership_status==='transferred'?'Propriété transférée':ownership?.ownership_status==='awaiting_proof'?'En attente de preuve':ownership?.ownership_status||'Non renseigné'}</strong></div>
           {ownership?.ownership_note&&<div><span>Note de création</span><strong>{ownership.ownership_note}</strong></div>}
           {ownership?.claimed_owner&&<div><span>Propriétaire actuel</span><strong>{[ownership.claimed_owner.first_name,ownership.claimed_owner.last_name].filter(Boolean).join(' ')||'@'+ownership.claimed_owner.username}</strong></div>}
         </div>
+        {ownershipError&&<p className="event-moderation-help">Impossible de charger la propriété : {ownershipError}</p>}
         {ownership?.ownership_type==='third_party'&&ownership.ownership_status!=='transferred'&&<div className="event-owner-transfer">
           <h3>Réattribuer la propriété</h3>
           <p>Cet événement appartient à un tiers. Après vérification de ses justificatifs, vous pouvez sélectionner son compte Scrole et lui transférer officiellement la propriété.</p>
