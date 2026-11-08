@@ -30,13 +30,14 @@ Deno.serve(async (req: Request) => {
     if (permissionError) throw permissionError;
     if (!permission?.enabled) return json({ success: false, message: "Permission de transfert requise." }, 403);
     const body = await req.json();
-    const q = String(body.query ?? "").trim().replace(/[,%_]/g, " ");
-    if (q.length < 2) return json({ success: true, users: [] });
+    const q = String(body.query ?? "").trim().replace(/[,%_()]/g, " ").replace(/\\s+/g, " ");
+    // À l’ouverture, proposer directement quelques comptes actifs. La recherche filtre ensuite l’ensemble des membres.
+    const initialLoad = q.length < 2;
     const { data: users, error } = await service.from("user_profiles")
       .select("user_id,username,first_name,last_name,photo_url")
       .is("deleted_at", null).eq("account_status", "active")
       .or(`username.ilike.%${q}%,first_name.ilike.%${q}%,last_name.ilike.%${q}%`)
-      .order("first_name", { ascending: true }).limit(25);
+      .order(initialLoad ? "created_at" : "first_name", { ascending: !initialLoad }).limit(initialLoad ? 12 : 30);
     if (error) throw error;
     return json({ success: true, users: users ?? [] });
   } catch (error) {
