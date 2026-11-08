@@ -18,7 +18,7 @@ export function EventCreatePage({ onNavigate }: { onNavigate: (path: string) => 
   const [startsAt,setStartsAt]=useState(''); const [endsAt,setEndsAt]=useState('')
   const [isVirtual,setIsVirtual]=useState(false); const [virtualLink,setVirtualLink]=useState('')
   const [countryId,setCountryId]=useState(''); const [cityId,setCityId]=useState(''); const [address,setAddress]=useState('')
-  const [isFree,setIsFree]=useState(false); const [isPublic,setIsPublic]=useState(true); const [photo,setPhoto]=useState('')
+  const [isFree,setIsFree]=useState(false); const [isPublic,setIsPublic]=useState(true); const [photo,setPhoto]=useState(''); const [photoFile,setPhotoFile]=useState<File|null>(null); const [photoPreview,setPhotoPreview]=useState('')
   const [ownershipType,setOwnershipType]=useState<'platform'|'third_party'>('platform')
   const [ownershipNote,setOwnershipNote]=useState('')
   const [activities,setActivities]=useState<ActivityDraft[]>([])
@@ -47,7 +47,7 @@ export function EventCreatePage({ onNavigate }: { onNavigate: (path: string) => 
     setSaving(true)
     try{
       const {data,error:invokeError}=await supabase.functions.invoke('admin-event-create',{body:{
-        event:{name:name.trim(),slug:slug.trim()||undefined,description,photo:photo.trim()||null,starts_at:new Date(startsAt).toISOString(),ends_at:endsAt?new Date(endsAt).toISOString():null,is_virtual:isVirtual,virtual_link:isVirtual?virtualLink.trim():null,country_id:isVirtual?null:countryId,city_id:isVirtual?null:cityId,address:isVirtual?null:address.trim(),is_free:isFree,is_public:isPublic},
+        event:{name:name.trim(),slug:slug.trim()||undefined,description,photo:photoFile?null:(photo.trim()||null),starts_at:new Date(startsAt).toISOString(),ends_at:endsAt?new Date(endsAt).toISOString():null,is_virtual:isVirtual,virtual_link:isVirtual?virtualLink.trim():null,country_id:isVirtual?null:countryId,city_id:isVirtual?null:cityId,address:isVirtual?null:address.trim(),is_free:isFree,is_public:isPublic},
         activities:activities.filter(a=>a.name.trim()).map(a=>({...a,base_price:Number(a.base_price)||0,event_price:Number(a.event_price)||0})),
         tickets:tickets.filter(t=>t.name.trim()).map(t=>({...t,price:Number(t.price)||0})),
         restrictions:{min_age:minAge||null,max_age:maxAge||null,serves_alcohol:servesAlcohol,overnight_event:overnight,id_required:idRequired,smoking_allowed:smokingAllowed,other_restrictions:otherRestrictions,allowed_genders:allowedGenders},
@@ -55,6 +55,15 @@ export function EventCreatePage({ onNavigate }: { onNavigate: (path: string) => 
       }})
       if(invokeError)throw invokeError
       if(!data?.success||!data.eventId)throw new Error(data?.message||'La création de l’événement a échoué.')
+      if(photoFile){
+        const {data:uploadData,error:uploadError}=await supabase.functions.invoke('r2-media-upload',{body:{action:'create-upload-url',category:'event_media',entity_id:data.eventId,media_type:'image',content_type:photoFile.type,size_bytes:photoFile.size,extension:photoFile.name.split('.').pop()?.toLowerCase()}})
+        if(uploadError)throw uploadError
+        if(!uploadData?.upload_url||!uploadData?.public_url)throw new Error(uploadData?.error||'Impossible de préparer le téléversement de la photo.')
+        const uploadResponse=await fetch(uploadData.upload_url,{method:'PUT',headers:{'Content-Type':photoFile.type},body:photoFile})
+        if(!uploadResponse.ok)throw new Error('Le téléversement de la photo a échoué.')
+        const {data:photoResult,error:photoError}=await supabase.functions.invoke('admin-event-update-photo',{body:{eventId:data.eventId,photo:uploadData.public_url}})
+        if(photoError||!photoResult?.success)throw new Error(photoError?.message||photoResult?.message||'La photo a été envoyée mais n’a pas pu être associée à l’événement.')
+      }
       setSuccess('Événement créé et publié dans Scrole.')
       onNavigate('/admin/events/'+data.eventId)
     }catch(e){setError(e instanceof Error?e.message:'Impossible de créer cet événement.')}
@@ -69,7 +78,7 @@ export function EventCreatePage({ onNavigate }: { onNavigate: (path: string) => 
         <label>Nom de l’événement<input className={field} value={name} onChange={e=>setName(e.target.value)} required maxLength={120}/></label>
         <label>Slug (facultatif)<input className={field} value={slug} onChange={e=>setSlug(e.target.value)} placeholder="Généré automatiquement si vide"/></label>
         <label>Description<textarea className="role-editor-textarea input" value={description} onChange={e=>setDescription(e.target.value)} rows={5}/></label>
-        <label>URL de la photo de couverture<input className={field} value={photo} onChange={e=>setPhoto(e.target.value)} placeholder="https://…"/></label>
+        <label>Photo de couverture<input className={field} type="file" accept="image/jpeg,image/png,image/webp,image/avif" onChange={e=>{const file=e.target.files?.[0]??null;if(file&&file.size>15*1024*1024){setError("La photo ne doit pas dépasser 15 Mo.");e.target.value="";return}setPhotoFile(file);setPhotoPreview(file?URL.createObjectURL(file):"");setPhoto("")}}/></label>{photoPreview&&<img src={photoPreview} alt="Aperçu de la couverture" className="event-create-photo-preview"/>}<label>Ou URL de la photo<input className={field} value={photo} onChange={e=>{setPhoto(e.target.value);setPhotoFile(null);setPhotoPreview("")}} placeholder="https://…"/></label>
         <div className="event-create-two"><label>Date et heure de début<input className={field} type="datetime-local" value={startsAt} onChange={e=>setStartsAt(e.target.value)} required/></label><label>Date et heure de fin<input className={field} type="datetime-local" value={endsAt} onChange={e=>setEndsAt(e.target.value)}/></label></div>
         <div className="event-create-checks"><label><input type="checkbox" checked={isPublic} onChange={e=>setIsPublic(e.target.checked)}/> Événement public</label><label><input type="checkbox" checked={isFree} onChange={e=>setIsFree(e.target.checked)}/> Événement gratuit</label></div>
       </div></Card>
