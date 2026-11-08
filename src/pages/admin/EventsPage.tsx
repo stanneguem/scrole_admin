@@ -11,6 +11,7 @@ type EventRow = {
   community?: { name?: string | null } | null
   creator?: { username?: string | null; name?: string | null; first_name?: string | null; last_name?: string | null } | null
   participant_count?: number; checked_in_count?: number
+  ownership?: { ownership_type?: 'platform'|'third_party'; ownership_status?: string } | null
 }
 type Payload = { events?: EventRow[]; data?: EventRow[]; error?: string; message?: string }
 
@@ -90,7 +91,7 @@ export function EventsPage({ onNavigate }: { onNavigate: (path: string) => void 
       </div>
       {error && <div className="table-empty" role="alert"><strong>Le chargement a échoué</strong><p>{error}</p><button type="button" className="table-action" onClick={() => setReload((value) => value + 1)}>Réessayer</button></div>}
       {loading && <div className="table-empty">Chargement des événements…</div>}
-      {!loading && !error && <div className="table-scroll"><table className="admin-table"><thead><tr><th>Événement</th><th>Date et lieu</th><th>Organisateur</th><th>Participation</th><th>Statut</th><th>Visibilité</th></tr></thead><tbody>
+      {!loading && !error && <div className="table-scroll"><table className="admin-table"><thead><tr><th>Événement</th><th>Date et lieu</th><th>Organisateur</th><th>Participation</th><th>Propriété</th><th>Statut</th><th>Visibilité</th></tr></thead><tbody>
         {filtered.map((event) => {
           const creatorName = event.creator?.name || [event.creator?.first_name, event.creator?.last_name].filter(Boolean).join(' ') || event.creator?.username || 'Organisateur inconnu'
           const place = [event.address, event.city?.nom, event.country?.nom].filter(Boolean).join(', ') || (event.is_virtual ? 'En ligne' : 'Lieu non précisé')
@@ -99,6 +100,7 @@ export function EventsPage({ onNavigate }: { onNavigate: (path: string) => void 
             <td>{dateLabel(event.starts_at)}<small>{place}</small></td>
             <td>{creatorName}</td>
             <td><strong>{event.participant_count ?? 0}</strong><small>{event.checked_in_count ?? 0} présent(s)</small></td>
+            <td><StatusBadge tone={event.ownership?.ownership_type==='third_party'?'warning':'neutral'}>{event.ownership?.ownership_type==='third_party'?(event.ownership.ownership_status==='transferred'?'Transféré':'Tiers'):'Scrole'}</StatusBadge></td>
             <td><StatusBadge tone={statusTone(event.status)}>{event.status || 'Non défini'}</StatusBadge></td>
             <td><StatusBadge tone={event.is_public ? 'success' : 'neutral'}>{event.is_public ? 'Public' : 'Privé'}</StatusBadge></td>
           </tr>
