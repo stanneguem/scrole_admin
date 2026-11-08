@@ -87,6 +87,7 @@ export function EventDetailPage({ eventId, onNavigate }: { eventId: string; onNa
   }, [eventId, reload])
   useEffect(() => {
     if (!transferPageOpen) return
+    if (selectedOwner) { setOwnerCandidates([]); setOwnerSearchLoading(false); return }
     let active = true
     const q = ownerQuery.trim()
     setOwnerSearchLoading(true)
@@ -104,7 +105,7 @@ export function EventDetailPage({ eventId, onNavigate }: { eventId: string; onNa
         .finally(() => { if (active) setOwnerSearchLoading(false) })
     }, q.length < 2 ? 0 : 250)
     return () => { active = false; window.clearTimeout(timer) }
-  }, [ownerQuery, transferPageOpen])
+  }, [ownerQuery, transferPageOpen, selectedOwner])
   const transferOwnership=async()=>{if(!event||!selectedOwner||!proofNote.trim()||transferBusy)return;setTransferBusy(true);setNotice(null);try{const {data,error}=await supabase.functions.invoke('admin-event-ownership-transfer',{body:{eventId:event.id,userId:selectedOwner.user_id,proofNote:proofNote.trim()}});if(error)throw error;if(!data?.success)throw new Error(data?.message||'Transfert impossible.');setNotice({kind:'success',text:'Propriété transférée au propriétaire vérifié.'});setSelectedOwner(null);setOwnerQuery('');setProofNote('');setTransferPageOpen(false);setReload(v=>v+1)}catch(e){setNotice({kind:'error',text:e instanceof Error?e.message:'Transfert impossible.'})}finally{setTransferBusy(false)}}
   const place = event ? [event.address, event.city?.nom, event.country?.nom].filter(Boolean).join(', ') : ''
   const creator = event?.creator?.name || event?.creator?.username || 'Organisateur inconnu'
