@@ -29,7 +29,19 @@ type Report = {
     post_id?: string
     community_id?: string
     status?: string
-    author?: { username?: string }
+    name?: string
+    description?: string
+    bio?: string
+    photo_url?: string
+    cover_url?: string
+    photo?: string
+    photos?: string[]
+    image_url?: string
+    thumbnail_url?: string
+    reputation_score?: number
+    account_status?: string
+    media?: { type?: string; url?: string; thumbnail_url?: string }[]
+    author?: { username?: string; first_name?: string; last_name?: string; photo_url?: string }
   } | null
 }
 
@@ -165,6 +177,8 @@ export function PlatformReportsPage({ onNavigate }: Props) {
           {!selected.target && <p>La cible n'est plus disponible. Identifiant : {selected.target_id}</p>}
           {selected.description && <p><strong>Précisions du signalant :</strong> {selected.description}</p>}
         </div>
+        {selected.target?.user_id && <button type="button" className="table-action" onClick={() => onNavigate(`/admin/users/${selected.target?.user_id}`)}>Ouvrir le dossier complet du profil</button>}
+        {selected.community_id && <button type="button" className="table-action" onClick={() => onNavigate(`/admin/communities/${selected.community_id}`)}>Ouvrir le dossier complet de la communauté</button>}
         <label className="field">Décision
           <select value={decision} onChange={e => setDecision(e.target.value as typeof decision)}>
             <option value="dismiss">Rejeter le signalement</option>
