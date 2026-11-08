@@ -22,6 +22,7 @@ alter table public.admin_event_ownership_history enable row level security;
 revoke all on public.admin_event_ownership from anon,authenticated;
 revoke all on public.admin_event_ownership_history from anon,authenticated;
 grant all on public.admin_event_ownership to service_role;
+grant all on public.admin_event_ownership_history to service_role;
 
 create or replace function public.admin_create_event_from_console(
  p_creator_id uuid,p_admin_profile_id uuid,p_event jsonb,p_activities jsonb default '[]'::jsonb,
