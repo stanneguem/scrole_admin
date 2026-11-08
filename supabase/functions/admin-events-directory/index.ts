@@ -64,12 +64,24 @@ Deno.serve(async (req: Request) => {
       [...new Set(rows.map((event: any) => event.community_id).filter(Boolean))].length
         ? service.from("communities").select("id,name").in("id", [...new Set(rows.map((event: any) => event.community_id).filter(Boolean))])
         : Promise.resolve({ data: [], error: null }),
-      eventIds.length ? service.from("admin_event_ownership").select("event_id,ownership_type,ownership_status,ownership_note,claimed_owner_user_id").in("event_id", eventIds) : Promise.resolve({ data: [], error: null }),
+      eventIds.length ? service.from("admin_event_ownership").select("event_id,ownership_type,ownership_status,ownership_note,claimed_owner_user_id,created_by_admin_id").in("event_id", eventIds) : Promise.resolve({ data: [], error: null }),
     ]);
     for (const result of [checkinsResult, profilesResult, citiesResult, countriesResult, communitiesResult, ownershipResult] as any[]) {
       if (result.error) throw result.error;
     }
 
+    const adminProfileIds = [...new Set((ownershipResult.data ?? [])
+      .filter((row: any) => row.ownership_type === "platform" || row.ownership_status === "awaiting_proof")
+      .map((row: any) => row.created_by_admin_id)
+      .filter(Boolean))];
+    const { data: adminProfiles, error: adminProfilesError } = adminProfileIds.length
+      ? await service.from("administrateur_profil")
+          .select("id,auth_id,role,prenom,nom,photo_url")
+          .in("id", adminProfileIds)
+      : { data: [], error: null };
+    if (adminProfilesError) throw adminProfilesError;
+
+    const adminProfileById = new Map((adminProfiles ?? []).map((row: any) => [row.id, row]));
     const profileById = new Map((profilesResult.data ?? []).map((row: any) => [row.user_id, row]));
     const cityById = new Map((citiesResult.data ?? []).map((row: any) => [row.id, row]));
     const countryById = new Map((countriesResult.data ?? []).map((row: any) => [row.id, row]));
@@ -85,13 +97,30 @@ Deno.serve(async (req: Request) => {
 
     const result = rows.map((event: any) => {
       const creator: any = profileById.get(event.creator_id);
+      const ownership: any = ownershipByEventId.get(event.id);
+      const adminCreator: any = ownership &&
+        (ownership.ownership_type === "platform" || ownership.ownership_status === "awaiting_proof")
+        ? adminProfileById.get(ownership.created_by_admin_id)
+        : null;
+      const creatorName = adminCreator
+        ? [adminCreator.prenom, adminCreator.nom].filter(Boolean).join(" ").trim()
+        : [creator?.first_name, creator?.last_name].filter(Boolean).join(" ").trim();
       return {
         ...event,
-        creator: creator ? {
+        creator: adminCreator ? {
+          user_id: adminCreator.auth_id,
+          username: null,
+          name: creatorName || "Administrateur Scrole",
+          photo_url: adminCreator.photo_url || creator?.photo_url || null,
+          is_admin_creator: true,
+          admin_role: adminCreator.role,
+        } : creator ? {
           user_id: creator.user_id,
           username: creator.username,
-          name: [creator.first_name, creator.last_name].filter(Boolean).join(" ") || creator.username || "Utilisateur",
+          name: creatorName || creator.username || "Utilisateur",
           photo_url: creator.photo_url,
+          is_admin_creator: false,
+          admin_role: null,
         } : null,
         city: cityById.get(event.city_id) ?? null,
         country: countryById.get(event.country_id) ?? null,
