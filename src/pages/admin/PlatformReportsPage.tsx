@@ -34,6 +34,9 @@ type Report = {
     bio?: string
     photo_url?: string
     cover_url?: string
+    photo_profile?: string
+    photo_cover?: string
+    creator?: { username?: string; first_name?: string; last_name?: string; photo_url?: string }
     photo?: string
     photos?: string[]
     image_url?: string
@@ -138,7 +141,7 @@ export function PlatformReportsPage({ onNavigate }: Props) {
           {reports.map(report => <tr key={report.id}>
             <td><strong>{report.reason?.nom ?? 'Motif non précisé'}</strong><small>{report.id}</small>{typeof report.reports_count === 'number' && <small>{report.reports_count} signalement{report.reports_count > 1 ? 's' : ''} ouvert{report.reports_count > 1 ? 's' : ''} sur cette cible</small>}{report.description && <small>{report.description}</small>}</td>
             <td><strong>{report.from_community ? 'Communauté' : report.source === 'external_profile' ? 'Profil externe' : 'Plateforme'}</strong><small>{report.community?.name ?? (report.community_id ? report.community_id : 'Signalement global')}</small>{report.escalated && <small>Escaladé automatiquement · 48 h</small>}</td>
-            <td><strong>{labelType(report.target_type)} · {displayName(report.target?.author ?? report.target)}</strong><small>{report.target?.name ?? report.target?.content ?? report.target_id}</small><button type="button" className="table-action" onClick={() => openDecision(report, 'dismiss')}>Examiner</button></td>
+            <td><strong>{labelType(report.target_type)} · {displayName(report.target?.author ?? report.target?.creator ?? report.target)}</strong><small>{report.target?.name ?? report.target?.content ?? report.target_id}</small><button type="button" className="table-action" onClick={() => openDecision(report, 'dismiss')}>Examiner</button></td>
             <td><StatusBadge tone={report.status === 'resolu' ? 'success' : report.status === 'rejete' ? 'danger' : 'warning'}>{labelStatus(report.status)}</StatusBadge></td>
             <td>{formatDate(report.created_at)}</td>
             <td><div className="admin-page-actions">
@@ -162,8 +165,8 @@ export function PlatformReportsPage({ onNavigate }: Props) {
         <p>Origine : {selected.community?.name ?? (selected.community_id ?? 'Plateforme')}{selected.escalated ? ' · remonté après 48 heures' : selected.source === 'external_profile' ? ' · signalement de profil externe' : ''}</p>
         <div className="report-review-preview">
           <h3>Contenu / cible à examiner</h3>
-          {selected.target?.photo_url && <img src={selected.target.photo_url} alt="Photo du profil ou de l'auteur" style={{width:88,height:88,objectFit:'cover',borderRadius:12}} />}
-          {selected.target?.cover_url && <img src={selected.target.cover_url} alt="Couverture du profil" style={{width:'100%',maxHeight:150,objectFit:'cover',borderRadius:12}} />}
+          {(selected.target?.photo_url ?? selected.target?.photo_profile) && <img src={(selected.target?.photo_url ?? selected.target?.photo_profile)!} alt="Photo du profil ou de l'auteur" style={{width:88,height:88,objectFit:'cover',borderRadius:12}} />}
+          {(selected.target?.cover_url ?? selected.target?.photo_cover) && <img src={(selected.target?.cover_url ?? selected.target?.photo_cover)!} alt="Couverture du profil" style={{width:'100%',maxHeight:150,objectFit:'cover',borderRadius:12}} />}
           {selected.target?.name && <p><strong>{selected.target.name}</strong></p>}
           {selected.target?.content && <p style={{whiteSpace:'pre-wrap'}}>{selected.target.content}</p>}
           {selected.target?.bio && <p style={{whiteSpace:'pre-wrap'}}>{selected.target.bio}</p>}
