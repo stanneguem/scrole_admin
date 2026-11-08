@@ -15,7 +15,7 @@ Deno.serve(async (req: Request) => {
   if (req.method !== "POST") return json({ success: false, message: "Méthode non autorisée." }, 405);
   try {
     const service = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-    const token = req.headers.get("Authorization")?.replace(/^Bearer\\s+/i, "");
+    const token = req.headers.get("Authorization")?.replace(/^Bearer\s+/i, "");
     if (!token) return json({ success: false, message: "Authentification requise." }, 401);
     const { data: authData, error: authError } = await service.auth.getUser(token);
     if (authError || !authData.user) return json({ success: false, message: "Session invalide." }, 401);
