@@ -26,6 +26,7 @@ import { ActivityValidationPage } from './ActivityValidationPage'
 import { ActivityLogPage } from './ActivityLogPage'
 import { EventsPage } from './EventsPage'
 import { EventDetailPage } from './EventDetailPage'
+import { EventCreatePage } from './EventCreatePage'
 import { useAuth } from '../../hooks/useAuth'
 import { PlatformReportsPage } from './PlatformReportsPage'
 import { NotificationsPage } from './NotificationsPage'
@@ -51,6 +52,7 @@ function AdminPage() { const location = useLocation(); const navigate = useNavig
   <Route path="users" element={<PermissionGate permission="users.view"><UsersPage onNavigate={navigate} /></PermissionGate>} />
   <Route path="communities" element={<PermissionGate permission="communities.view"><CommunitiesPage onNavigate={navigate} /></PermissionGate>} />
   <Route path="events" element={<PermissionGate permission="events.view"><EventsPage onNavigate={navigate} /></PermissionGate>} />
+  <Route path="events/create" element={<PermissionGate permission="events.create"><EventCreatePage onNavigate={navigate} /></PermissionGate>} />
   {Object.entries(resourcePaths).filter(([path]) => path !== "reports" && path !== "communities" && path !== "events" && path !== "system/activity").map(([path, resource]) => <Route key={path} path={path} element={<PermissionGate permission={routePermissions[path]}><ResourcePage resource={resource} onNavigate={navigate} /></PermissionGate>} />)}
   <Route path="system/activity" element={<PermissionGate permission="system.view"><ActivityLogPage /></PermissionGate>} />
   <Route path="system/activity/:id" element={<PermissionGate permission="system.view"><ActivityLogPage detailMode /></PermissionGate>} />
