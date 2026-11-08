@@ -36,7 +36,7 @@ export function EventCreatePage({ onNavigate }: { onNavigate: (path: string) => 
   const visibleCities=cities.filter(city=>city.country_id===countryId)
   const updateActivity=(index:number,key:keyof ActivityDraft,value:string)=>setActivities(rows=>rows.map((row,i)=>i===index?{...row,[key]:value}:row))
   const updateTicket=(index:number,key:keyof TicketDraft,value:string)=>setTickets(rows=>rows.map((row,i)=>i===index?{...row,[key]:value}:row))
-  const addOpenDay=()=>{const value=window.prompt('Date d’ouverture (AAAA-MM-JJ)'); if(value && /^\d{4}-\d{2}-\d{2}$/.test(value) && !openDays.includes(value))setOpenDays(rows=>[...rows,value].sort())}
+  const addOpenDay=(value:string)=>{if(value && !openDays.includes(value))setOpenDays(rows=>[...rows,value].sort())}
 
   const submit=async(event:React.FormEvent)=>{event.preventDefault();setError('');setSuccess('')
     if(!name.trim()||!startsAt){setError('Le nom et la date de début sont obligatoires.');return}
@@ -100,7 +100,7 @@ export function EventCreatePage({ onNavigate }: { onNavigate: (path: string) => 
         <label>Public autorisé<select className={field} multiple value={allowedGenders} onChange={e=>setAllowedGenders(Array.from(e.target.selectedOptions).map(o=>o.value))}><option value="homme">Hommes</option><option value="femme">Femmes</option></select></label>
         <label>Autres restrictions<textarea className="role-editor-textarea input" value={otherRestrictions} onChange={e=>setOtherRestrictions(e.target.value)}/></label>
       </div></Card>
-      <Card title="Jours d’ouverture (facultatif)"><div className="event-create-list"><div className="event-create-item-head"><span>{openDays.length?openDays.join(' · '):'Aucun jour spécifique'}</span><button type="button" className="table-action" onClick={addOpenDay}>+ Ajouter une date</button></div>{openDays.map(day=><button type="button" className="table-action" key={day} onClick={()=>setOpenDays(rows=>rows.filter(d=>d!==day))}>Retirer {day}</button>)}</div></Card>
+      <Card title="Jours d’ouverture (facultatif)"><div className="event-create-list"><div className="event-create-item-head"><span>{openDays.length?`${openDays.length} date(s) sélectionnée(s)`:'Aucune date spécifique'}</span></div><label className="event-create-date-picker">Ajouter une date<input className={field} type="date" aria-label="Choisir un jour d’ouverture dans le calendrier" onChange={e=>{addOpenDay(e.target.value);e.target.value=""}}/></label><div className="event-create-selected-days">{openDays.map(day=><div className="event-create-selected-day" key={day}><span>{new Date(`${day}T12:00:00`).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</span><button type="button" className="table-action" aria-label={`Retirer le ${day}`} onClick={()=>setOpenDays(rows=>rows.filter(d=>d!==day))}>Retirer</button></div>)}</div></div></Card>
       <div className="event-create-submit"><ScroleButton type="button" variant="secondary" onClick={()=>navigate('/admin/events')}>Annuler</ScroleButton><ScroleButton type="submit" disabled={saving}>{saving?'Création en cours…':'Créer et publier l’événement'}</ScroleButton></div>
     </form>
   </div>
